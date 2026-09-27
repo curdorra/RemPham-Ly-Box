@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TitleType {
+  MOVIE
+  SERIES
+}
+
+enum Maturity {
+  G
+  PG
+  PG13
+  R
+  NC17
+  TVY
+  TVPG
+  TV14
+  TVMA
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+model User {
+  id               String          @id @default(cuid())
+  email            String          @unique
+  passwordHash     String
+  name             String
+  stripeCustomerId String?         @unique
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  subscription     Subscription?
+  progress         WatchProgress[]
+  myList           MyListItem[]
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId               String
+  status               SubscriptionStatus
+  stripeSubscriptionId String?            @unique
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model Genre {
+  id     String  @id @default(cuid())
+  slug   String  @unique
+  name   String
+  titles Title[]
+}
+
+model Title {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  type        TitleType
+  name        String
+  synopsis    String
+  year        Int
+  maturity    Maturity
+  posterUrl   String
+  backdropUrl String
+  cast        String[]
+  featured    Boolean         @default(false)
+  published   Boolean         @default(true)
+  /// Movies only: runtime and HLS master manifest.
+  durationSec Int?
+  manifestUrl String?
+  genres      Genre[]
+  seasons     Season[]
+  progress    WatchProgress[]
+  inLists     MyListItem[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([published, type])
+}
+
+model Season {
+  id       String    @id @default(cuid())
+  titleId  String
+  title    Title     @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  number   Int
+  name     String
+  episodes Episode[]
+
+  @@unique([titleId, number])
+}
+
+model Episode {
+  id           String          @id @default(cuid())
+  seasonId     String
+  season       Season          @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  number       Int
+  name         String
+  synopsis     String
+  durationSec  Int
+  thumbnailUrl String
+  manifestUrl  String
+  progress     WatchProgress[]
+
+  @@unique([seasonId, number])
+}
+
+/// One row per (user, playable media). mediaId = episodeId ?? titleId so the
+/// unique constraint works without nullable columns.
+model WatchProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titleId     String
+  title       Title    @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  episodeId   String?
+  episode     Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  mediaId     String
+  positionSec Int
+  durationSec Int
+  completed   Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, mediaId])
+  @@index([userId, updatedAt])
+}
+
+model MyListItem {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titleId   String
+  title     Title    @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, titleId])
+}

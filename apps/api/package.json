@@ -1,0 +1,43 @@
+{
+  "name": "@ott/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "prisma generate && tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@ott/shared": "*",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "stripe": "^22.0.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.9",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.18.0",
+    "@types/supertest": "^6.0.3",
+    "prisma": "7.10.0",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.6",
+    "vitest": "^3.2.4"
+  }
+}

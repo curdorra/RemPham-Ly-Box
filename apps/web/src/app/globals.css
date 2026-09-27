@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #e5484d;
+  --color-brand-hover: #f2555a;
+  --color-surface: #0b0b0f;
+  --color-panel: #16161d;
+  --color-muted: #9b9ba7;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-surface);
+  color: #f4f4f6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
