@@ -13,12 +13,12 @@ export function EpisodeList({ titleId, seasons }: { titleId: string; seasons: Se
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Episodes</h2>
+        <h2 className="font-serif text-[34px] font-light italic">Episodes</h2>
         {seasons.length > 1 && (
           <select
             value={season.id}
             onChange={(e) => setSeasonId(e.target.value)}
-            className="rounded border border-white/20 bg-panel px-3 py-1.5"
+            className="field h-10 w-auto"
           >
             {seasons.map((s) => (
               <option key={s.id} value={s.id}>
@@ -28,19 +28,19 @@ export function EpisodeList({ titleId, seasons }: { titleId: string; seasons: Se
           </select>
         )}
       </div>
-      <ol className="divide-y divide-white/10">
+      <ol className="divide-y divide-[var(--line)]">
         {season.episodes.map((ep) => (
           <li key={ep.id}>
-            <Link href={`/watch/${titleId}?episode=${ep.id}`} className="flex gap-4 py-4 hover:bg-white/5">
-              <span className="w-6 shrink-0 pt-6 text-center text-xl text-muted">{ep.number}</span>
+            <Link href={`/watch/${titleId}?episode=${ep.id}`} className="flex gap-4 rounded-lg py-4 hover:bg-[var(--gold-soft)]">
+              <span className="w-8 shrink-0 pt-5 text-center font-serif text-3xl text-gold italic">{ep.number}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={ep.thumbnailUrl} alt="" loading="lazy" className="aspect-video w-40 shrink-0 rounded object-cover" />
               <div className="min-w-0 flex-1">
                 <div className="flex justify-between gap-2">
-                  <p className="font-semibold">{ep.name}</p>
-                  <span className="shrink-0 text-sm text-muted">{formatDuration(ep.durationSec)}</span>
+                  <p className="font-serif text-xl italic">{ep.name}</p>
+                  <span className="shrink-0 text-sm text-ink-3">{formatDuration(ep.durationSec)}</span>
                 </div>
-                <p className="mt-1 line-clamp-2 text-sm text-muted">{ep.synopsis}</p>
+                <p className="mt-1 line-clamp-2 text-sm text-ink-3">{ep.synopsis}</p>
               </div>
             </Link>
           </li>

@@ -7,11 +7,13 @@ import { config } from "../config.js";
  * the Prisma CLI) selects a non-public schema, which lets tests share a
  * database server with development without touching its data.
  */
-export function createPrisma(databaseUrl: string) {
+export function createPrisma(databaseUrl: string, poolMax?: number) {
   const url = new URL(databaseUrl);
   const schema = url.searchParams.get("schema") ?? undefined;
   url.searchParams.delete("schema");
-  return new PrismaClient({ adapter: new PrismaPg({ connectionString: url.toString() }, { schema }) });
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString: url.toString(), ...(poolMax && { max: poolMax }) }, { schema }),
+  });
 }
 
-export const prisma = createPrisma(config.DATABASE_URL);
+export const prisma = createPrisma(config.DATABASE_URL, config.DATABASE_POOL_MAX);

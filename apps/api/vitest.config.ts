@@ -10,6 +10,7 @@ export default defineConfig({
       NODE_ENV: "test",
       DATABASE_URL: TEST_DATABASE_URL,
       JWT_SECRET: "test-secret-test-secret-test-secret",
+      DATABASE_POOL_MAX: process.env.DATABASE_POOL_MAX ?? "",
       RAZORPAY_KEY_ID: "",
       RAZORPAY_KEY_SECRET: "",
       RAZORPAY_WEBHOOK_SECRET: "",

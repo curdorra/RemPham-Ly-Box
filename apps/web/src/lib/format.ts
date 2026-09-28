@@ -20,3 +20,18 @@ const MATURITY_LABEL: Record<Maturity, string> = {
   TVY: "TV-Y", TVPG: "TV-PG", TV14: "TV-14", TVMA: "TV-MA",
 };
 export const maturityLabel = (m: Maturity) => MATURITY_LABEL[m];
+
+export const CINEMA_TZ = "Asia/Kolkata";
+
+/** "Fri 18 Dec · 7:00 PM" in Mizoram time. */
+export function formatShowtime(iso: string, opts: { weekday?: boolean } = { weekday: true }) {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("en-IN", { timeZone: CINEMA_TZ, ...(opts.weekday && { weekday: "short" }), day: "numeric", month: "short" });
+  return `${date} · ${formatTime(iso)}`;
+}
+
+export function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-IN", { timeZone: CINEMA_TZ, hour: "numeric", minute: "2-digit" }).toUpperCase();
+}
+
+export const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];

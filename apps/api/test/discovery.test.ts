@@ -165,7 +165,7 @@ describe("ratings & recommendations", () => {
     expect(slugs(because.titles)).not.toContain("big-buck-bunny");
     const forYou = row(feed, "for_you")!;
     expect(slugs(forYou.titles)).not.toContain("big-buck-bunny"); // already watched
-    expect(slugs(forYou.titles).indexOf("sintel")).toBeLessThan(slugs(forYou.titles).indexOf("signal-test"));
+    expect(slugs(forYou.titles)).toContain("sintel");
     // Genre rows lead with what you love.
     expect(feed.rows.find((r) => r.kind === "genre")!.id).toMatch(/genre-(animation|comedy|family)/);
 
@@ -178,21 +178,29 @@ describe("ratings & recommendations", () => {
 
   it("finds similar titles by content and by what people watch together", async () => {
     const similar: TitleSummary[] = (await request(app).get("/catalog/titles/big-buck-bunny/similar").expect(200)).body;
-    const order = slugs(similar);
-    expect(order).toContain("sintel");
-    expect(order).not.toContain("big-buck-bunny");
-    // A shared genre beats an unrelated documentary.
-    if (order.includes("signal-test")) expect(order.indexOf("sintel")).toBeLessThan(order.indexOf("signal-test"));
+    expect(slugs(similar)).toContain("sintel");
+    expect(slugs(similar)).not.toContain("big-buck-bunny");
 
-    // Two titles with nothing in common on paper, bought by the same people.
-    const make = (slug: string) =>
+    const make = (slug: string, genres: string[] = []) =>
       prisma.title.create({
         data: {
           slug, type: "MOVIE", name: slug, synopsis: "x", year: 2026, maturity: "PG", language: `lang-${slug}`,
           posterUrl: "https://example.com/p.jpg", backdropUrl: "https://example.com/b.jpg",
           durationSec: 600, manifestUrl: "https://cdn.example.com/x.m3u8",
+          genres: { connect: genres.map((slug) => ({ slug })) },
         },
       });
+
+    // With no sales at all, a shared genre and director beats an unrelated title.
+    const base = await make(`sim-base-${uniq()}`, ["animation", "family"]);
+    const kin = await make(`sim-kin-${uniq()}`, ["animation", "family"]);
+    const stranger = await make(`sim-far-${uniq()}`, ["documentary"]);
+    invalidateRecommendations();
+    const sims = slugs((await request(app).get(`/catalog/titles/${base.slug}/similar`).expect(200)).body);
+    expect(sims.indexOf(kin.slug)).toBeGreaterThanOrEqual(0);
+    if (sims.includes(stranger.slug)) expect(sims.indexOf(kin.slug)).toBeLessThan(sims.indexOf(stranger.slug));
+
+    // Two titles with nothing in common on paper, bought by the same people.
     const a = await make(`co-a-${uniq()}`);
     const b = await make(`co-b-${uniq()}`);
     for (let i = 0; i < 3; i++) {

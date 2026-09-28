@@ -1,6 +1,17 @@
 import "server-only";
 import { cookies } from "next/headers";
-import type { ContinueWatchingItem, Me, Ticket, TitleSummary } from "@ott/shared";
+import type {
+  BoxOffice,
+  CinemaSchedule,
+  ContinueWatchingItem,
+  HomeFeed,
+  Me,
+  ScreeningDetail,
+  ScreeningSummary,
+  SnackItem,
+  Ticket,
+  TitleSummary,
+} from "@ott/shared";
 
 const API_URL = process.env.API_URL ?? "http://localhost:4000";
 
@@ -34,3 +45,10 @@ export async function getMe(): Promise<Me | null> {
 export const getContinueWatching = () => apiGet<ContinueWatchingItem[]>("/me/continue-watching");
 export const getMyList = () => apiGet<TitleSummary[]>("/me/list");
 export const getTickets = () => apiGet<Ticket[]>("/tickets");
+export const getHome = () => apiGet<HomeFeed>("/catalog/home");
+export const getScreenings = () => apiGet<ScreeningSummary[]>("/screenings");
+export const getScreening = (id: string) => apiGet<ScreeningDetail>(`/screenings/${encodeURIComponent(id)}`);
+export const getCinema = (days = 7) => apiGet<CinemaSchedule>(`/cinema/remphamly-aizawl?days=${days}`);
+export const getBoxOffice = () => apiGet<BoxOffice>("/box-office");
+export const getSnacks = () => apiGet<SnackItem[]>("/snacks");
+export const getSimilar = (slug: string) => apiGet<TitleSummary[]>(`/catalog/titles/${encodeURIComponent(slug)}/similar`);

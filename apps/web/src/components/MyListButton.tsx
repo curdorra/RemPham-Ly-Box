@@ -3,8 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ClientApiError } from "@/lib/api-client";
+import { useT } from "./LangProvider";
 
 export function MyListButton({ titleId, initial }: { titleId: string; initial: boolean }) {
+  const t = useT();
   const [inList, setInList] = useState(initial);
   const [busy, setBusy] = useState(false);
   const router = useRouter();
@@ -22,12 +24,8 @@ export function MyListButton({ titleId, initial }: { titleId: string; initial: b
   }
 
   return (
-    <button
-      onClick={toggle}
-      disabled={busy}
-      className="rounded bg-white/20 px-5 py-2 font-semibold hover:bg-white/30 disabled:opacity-60"
-    >
-      {inList ? "✓ In My List" : "+ My List"}
+    <button onClick={toggle} disabled={busy} className="btn btn-ghost" aria-pressed={inList}>
+      {inList ? `✓ ${t("added")}` : `+ ${t("myList")}`}
     </button>
   );
 }

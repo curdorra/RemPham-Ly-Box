@@ -1,23 +1,43 @@
 import type { Metadata } from "next";
-import { Navbar } from "@/components/Navbar";
-import { getMe } from "@/lib/api-server";
+import { Cormorant_Garamond, Inter_Tight } from "next/font/google";
+import { Header } from "@/components/Header";
+import { LangProvider } from "@/components/LangProvider";
+import { Logo } from "@/components/Logo";
+import { getMe, getTickets } from "@/lib/api-server";
+import { getLang } from "@/lib/lang-server";
+import { translator } from "@/lib/i18n";
 import "./globals.css";
 
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+});
+const interTight = Inter_Tight({ subsets: ["latin", "latin-ext"], variable: "--font-inter-tight" });
+
 export const metadata: Metadata = {
-  title: { default: "RemPham Ly Box", template: "%s · RemPham Ly Box" },
-  description: "Movies and series, streaming anywhere.",
+  title: { default: "RemPham Ly Box — Online Cinema", template: "%s · RemPham Ly Box" },
+  description: "Mizo films on the big screen and at home: tickets, opening nights and snacks.",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const me = await getMe().catch(() => null);
+  const [me, lang] = await Promise.all([getMe().catch(() => null), getLang()]);
+  const tickets = me ? await getTickets().catch(() => []) : [];
+  const usable = tickets.filter((x) => !x.isGiftForOthers && x.state !== "EXPIRED").length;
+  const t = translator(lang);
   return (
-    <html lang="en">
-      <body className="min-h-screen font-sans">
-        <Navbar me={me} />
-        <main>{children}</main>
-        <footer className="mt-24 border-t border-white/5 px-4 py-10 text-sm text-muted sm:px-10">
-          © {new Date().getFullYear()} RemPham Ly Box. Demo content: Blender Foundation open movies (CC-BY).
-        </footer>
+    <html lang={lang === "lus" ? "lus" : "en"} className={`${cormorant.variable} ${interTight.variable}`}>
+      <body className="min-h-screen">
+        <LangProvider lang={lang}>
+          <div className="grain" aria-hidden="true" />
+          <Header me={me} lang={lang} ticketCount={usable} />
+          <main>{children}</main>
+          <footer className="gutter mt-28 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--line)] py-10 text-sm text-ink-3">
+            <Logo tagline={t("tagline")} />
+            <p>RemPhamLy Cinema · Aizawl, Mizoram · © {new Date().getFullYear()}</p>
+          </footer>
+        </LangProvider>
       </body>
     </html>
   );

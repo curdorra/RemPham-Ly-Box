@@ -7,12 +7,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PlaybackInfo } from "@ott/shared";
 import { api, ClientApiError } from "@/lib/api-client";
 import { getDeviceId } from "@/lib/device";
+import { useT } from "./LangProvider";
 
 const PROGRESS_INTERVAL_MS = 10_000;
 /** Keeps this device's screen claimed; the API frees screens silent for ~90s. */
 const HEARTBEAT_INTERVAL_MS = 30_000;
 /** During a live opening night, drift beyond this is snapped back. */
 const LIVE_DRIFT_SEC = 5;
+/** How long the "lights are going down" card stays before the film fades in. */
+const LIGHTS_MS = 2600;
 
 type State =
   | { kind: "loading" }
@@ -25,7 +28,21 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
   const positionRef = useRef<{ positionSec: number; durationSec: number } | null>(null);
   const [state, setState] = useState<State>({ kind: "loading" });
   const [ended, setEnded] = useState(false);
+  const [lights, setLights] = useState(true);
+  const [now, setNow] = useState(0);
   const router = useRouter();
+  const t = useT();
+
+  const lightsRef = useRef(true);
+  useEffect(() => {
+    const id = setTimeout(() => {
+      lightsRef.current = false;
+      setLights(false);
+      const v = videoRef.current;
+      if (v && v.readyState > 0 && v.paused) void v.play().catch(() => undefined);
+    }, LIGHTS_MS);
+    return () => clearTimeout(id);
+  }, []);
   const deviceId = useRef<string>("");
   // When the live grant was received, to compute where the live playhead is now.
   const grantedAt = useRef(0);
@@ -69,8 +86,10 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
     if (!video || !info) return;
 
     const start = () => {
-      if (info.resumeFromSec > 0) video.currentTime = info.resumeFromSec;
-      void video.play().catch(() => undefined);
+      // Live screenings: join where the hall is now (the lights card took a moment).
+      const at = info.live ? info.live.offsetSec + (performance.now() - grantedAt.current) / 1000 : info.resumeFromSec;
+      if (at > 0) video.currentTime = at;
+      if (!lightsRef.current) void video.play().catch(() => undefined);
     };
 
     if (Hls.isSupported()) {
@@ -179,6 +198,7 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
           className="h-full w-full"
           onTimeUpdate={(e) => {
             const v = e.currentTarget;
+            setNow(v.currentTime);
             if (Number.isFinite(v.duration) && v.duration >= 1) {
               positionRef.current = { positionSec: Math.floor(v.currentTime), durationSec: Math.floor(v.duration) };
             }
@@ -197,25 +217,56 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
         />
       )}
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-4 bg-gradient-to-b from-black/80 to-transparent p-4">
-        <button onClick={() => router.back()} className="pointer-events-auto rounded bg-white/10 px-3 py-1.5 hover:bg-white/20">
-          ← Back
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-4 bg-gradient-to-b from-black/80 to-transparent p-4 sm:px-8">
+        <button onClick={() => router.back()} className="btn btn-ghost btn-sm pointer-events-auto">
+          ← {t("back")}
         </button>
-        <p className="truncate font-semibold">{heading}</p>
-        {info?.live && <span className="rounded bg-brand px-2 py-0.5 text-xs font-bold">LIVE · OPENING NIGHT</span>}
+        <p className="truncate font-serif text-2xl italic">{heading}</p>
+        {info?.live && <span className="chip chip-ox ml-auto"><span className="live-dot" />{t("liveNow")}</span>}
       </div>
 
-      {state.kind === "loading" && <p className="text-muted">Loading…</p>}
+      {/* Skip intro / next episode */}
+      {info && !info.live && info.markers.introEndSec !== null && now >= (info.markers.introStartSec ?? 0) && now < info.markers.introEndSec && (
+        <button
+          onClick={() => {
+            if (videoRef.current && info.markers.introEndSec !== null) videoRef.current.currentTime = info.markers.introEndSec;
+          }}
+          className="btn btn-ghost absolute right-8 bottom-28 z-10"
+        >
+          {t("skipIntro")} ⏭
+        </button>
+      )}
+      {info?.nextEpisodeId && info.markers.creditsStartSec !== null && now >= info.markers.creditsStartSec && !ended && (
+        <Link href={`/watch/${titleId}?episode=${info.nextEpisodeId}`} replace className="btn btn-ivory absolute right-8 bottom-28 z-10">
+          {t("nextEpisode")} ▶
+        </Link>
+      )}
+
+      {/* The lights go down */}
+      <div
+        className={`pointer-events-none absolute inset-0 z-20 grid place-items-center bg-black text-center transition-opacity duration-[1200ms] ${
+          lights || state.kind === "loading" ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden="true"
+      >
+        <div>
+          <div className="lbl text-gold">{t("enjoy")}</div>
+          <p className="mt-3 font-serif text-[clamp(36px,6vw,72px)] font-light text-ink-2 italic">{t("lightsDown")}</p>
+          <div className="mx-auto mt-5 h-0.5 w-40 overflow-hidden bg-white/10">
+            <i className="block h-full w-0 bg-gold" style={{ animation: `fill ${LIGHTS_MS}ms linear forwards` }} />
+          </div>
+        </div>
+      </div>
 
       {state.kind === "error" && (
-        <div className="max-w-md space-y-4 p-6 text-center">
-          <p className="text-lg">{state.message}</p>
+        <div className="relative z-30 max-w-md space-y-4 p-6 text-center">
+          <p className="font-serif text-3xl italic">{state.message}</p>
           {state.code === "premiere_not_started" && state.details?.startsAt && (
-            <p className="text-white/70">Doors open at {new Date(state.details.startsAt).toLocaleString()}.</p>
+            <p className="text-ink-2">Doors open at {new Date(state.details.startsAt).toLocaleString()}.</p>
           )}
           {state.code === "ticket_required" && (
-            <button onClick={() => router.back()} className="inline-block rounded bg-brand px-5 py-2 font-semibold hover:bg-brand-hover">
-              Get a ticket
+            <button onClick={() => router.back()} className="btn btn-red">
+              {t("book")}
             </button>
           )}
         </div>
@@ -225,9 +276,9 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
         <Link
           href={`/watch/${titleId}?episode=${info.nextEpisodeId}`}
           replace
-          className="absolute bottom-24 right-8 rounded bg-white px-5 py-2 font-semibold text-black hover:bg-white/80"
+          className="btn btn-ivory absolute right-8 bottom-24"
         >
-          Next episode ▶
+          {t("nextEpisode")} ▶
         </Link>
       )}
     </div>

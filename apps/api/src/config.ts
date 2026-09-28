@@ -5,6 +5,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().default(4000),
   DATABASE_URL: z.string().min(1),
+  /** Cap on pooled DB connections. Set to 1 for the single-session `prisma dev` server. */
+  DATABASE_POOL_MAX: z.preprocess((v) => (v === "" ? undefined : v), z.coerce.number().int().min(1).optional()),
   WEB_ORIGIN: z.url().default("http://localhost:3000"),
   JWT_SECRET: z.string().min(16, "JWT_SECRET must be at least 16 characters"),
   RAZORPAY_KEY_ID: z.string().optional().default(""),

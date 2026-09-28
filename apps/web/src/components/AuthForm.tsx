@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import type { Me } from "@ott/shared";
 import { api, ClientApiError } from "@/lib/api-client";
+import { useT } from "./LangProvider";
 
 /** Only allow same-site relative redirects after auth. */
 function safeNext(next: string | null, fallback: string) {
@@ -11,6 +13,7 @@ function safeNext(next: string | null, fallback: string) {
 }
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -22,8 +25,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setBusy(true);
     const form = Object.fromEntries(new FormData(e.currentTarget));
     try {
-      await api(`/auth/${mode}`, { body: form });
-      router.push(safeNext(params.get("next"), "/"));
+      const me = await api<Me>(`/auth/${mode}`, { body: form });
+      const next = safeNext(params.get("next"), "/");
+      // Households: ask who's watching before going on.
+      router.push(mode === "login" && me.profiles.length > 1 ? `/profiles?next=${encodeURIComponent(next)}` : next);
       router.refresh();
     } catch (err) {
       setError(err instanceof ClientApiError ? err.message : "Something went wrong");
@@ -31,10 +36,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     }
   }
 
-  const input = "w-full rounded border border-white/20 bg-black/40 px-4 py-3 outline-none focus:border-white/60";
+  const input = "field";
   return (
-    <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 rounded-lg bg-black/70 p-8">
-      <h1 className="text-3xl font-bold">{mode === "login" ? "Sign in" : "Create account"}</h1>
+    <form onSubmit={onSubmit} className="panel w-full max-w-sm space-y-4 p-8 backdrop-blur">
+      <div className="eyebrow">RemPham Ly Box</div>
+      <h1 className="display text-[52px]">{mode === "login" ? t("signIn") : t("signUp")}</h1>
       {mode === "signup" && <input name="name" placeholder="Name" required autoComplete="name" className={input} />}
       <input name="email" type="email" placeholder="Email" required autoComplete="email" className={input} />
       <input
@@ -46,15 +52,15 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         autoComplete={mode === "login" ? "current-password" : "new-password"}
         className={input}
       />
-      {error && <p className="text-sm text-brand">{error}</p>}
-      <button disabled={busy} className="w-full rounded bg-brand py-3 font-semibold hover:bg-brand-hover disabled:opacity-60">
-        {mode === "login" ? "Sign in" : "Sign up"}
+      {error && <p className="text-sm text-[#ff8a93]">{error}</p>}
+      <button disabled={busy} className="btn btn-red w-full">
+        {mode === "login" ? t("signIn") : t("signUp")}
       </button>
-      <p className="text-sm text-muted">
+      <p className="text-sm text-ink-3">
         {mode === "login" ? (
-          <>New here? <Link href="/signup" className="text-white hover:underline">Create an account</Link></>
+          <>New here? <Link href="/signup" className="text-gold hover:underline">Create an account</Link></>
         ) : (
-          <>Already a member? <Link href="/login" className="text-white hover:underline">Sign in</Link></>
+          <>Already a member? <Link href="/login" className="text-gold hover:underline">Sign in</Link></>
         )}
       </p>
     </form>
