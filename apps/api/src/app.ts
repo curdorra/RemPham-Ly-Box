@@ -4,10 +4,18 @@ import helmet from "helmet";
 import { errorHandler, notFoundHandler } from "./lib/errors.js";
 import { optionalAuth } from "./middleware/auth.js";
 import { authRouter } from "./routes/auth.js";
-import { billingRouter, stripeWebhookHandler } from "./routes/billing.js";
+import { adminRouter } from "./routes/admin.js";
+import { boxOfficeRouter } from "./routes/boxoffice.js";
 import { catalogRouter } from "./routes/catalog.js";
+import { cinemaRouter } from "./routes/cinema.js";
 import { meRouter } from "./routes/me.js";
+import { ordersRouter, razorpayWebhookHandler } from "./routes/orders.js";
 import { playbackRouter } from "./routes/playback.js";
+import { profilesRouter } from "./routes/profiles.js";
+import { screeningsRouter } from "./routes/screenings.js";
+import { searchRouter } from "./routes/search.js";
+import { snacksRouter } from "./routes/snacks.js";
+import { ticketsRouter } from "./routes/tickets.js";
 
 export function createApp() {
   const app = express();
@@ -16,7 +24,7 @@ export function createApp() {
   app.use(helmet());
 
   // Must see the raw body, so it is registered before express.json().
-  app.post("/billing/webhook", ...stripeWebhookHandler);
+  app.post("/payments/razorpay/webhook", ...razorpayWebhookHandler);
 
   app.use(express.json({ limit: "100kb" }));
   app.use(cookieParser());
@@ -27,9 +35,17 @@ export function createApp() {
   });
   app.use("/auth", authRouter);
   app.use("/catalog", catalogRouter);
+  app.use("/search", searchRouter);
+  app.use("/profiles", profilesRouter);
+  app.use("/cinema", cinemaRouter);
   app.use("/me", meRouter);
   app.use("/playback", playbackRouter);
-  app.use("/billing", billingRouter);
+  app.use("/orders", ordersRouter);
+  app.use("/tickets", ticketsRouter);
+  app.use("/screenings", screeningsRouter);
+  app.use("/snacks", snacksRouter);
+  app.use("/box-office", boxOfficeRouter);
+  app.use("/admin", adminRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

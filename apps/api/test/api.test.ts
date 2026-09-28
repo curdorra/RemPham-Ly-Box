@@ -1,17 +1,13 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import type { HomeFeed, PlaybackInfo, TitleDetail, TitleSummary } from "@ott/shared";
-import { app, signUp, subscribedUser } from "./helpers.js";
-
-async function getTitle(slug: string): Promise<TitleDetail> {
-  return (await request(app).get(`/catalog/titles/${slug}`).expect(200)).body;
-}
+import type { HomeFeed, PlaybackInfo, TitleSummary } from "@ott/shared";
+import { DEVICE, app, buy, getTitle, signUp, userWithTicket } from "./helpers.js";
 
 describe("auth", () => {
   it("signs up, reads /me, logs out", async () => {
     const { agent, email, me } = await signUp();
     expect(me.email).toBe(email);
-    expect(me.canWatch).toBe(false);
+    expect(me.role).toBe("VIEWER");
 
     const res = await agent.get("/auth/me").expect(200);
     expect(res.body.email).toBe(email);
@@ -67,42 +63,46 @@ describe("catalog", () => {
 });
 
 describe("playback entitlement", () => {
-  it("requires sign-in, then a subscription", async () => {
+  it("requires sign-in, then a ticket", async () => {
     const movie = await getTitle("big-buck-bunny");
-    await request(app).post("/playback").send({ titleId: movie.id }).expect(401);
+    await request(app).post("/playback").send({ titleId: movie.id, deviceId: DEVICE }).expect(401);
 
     const { agent } = await signUp();
-    const res = await agent.post("/playback").send({ titleId: movie.id });
+    const res = await agent.post("/playback").send({ titleId: movie.id, deviceId: DEVICE });
     expect(res.status).toBe(402);
-    expect(res.body.error.code).toBe("subscription_required");
+    expect(res.body.error.code).toBe("ticket_required");
 
-    await agent.post("/billing/checkout").send({ planId: "basic" }).expect(200);
-    const ok = await agent.post("/playback").send({ titleId: movie.id }).expect(200);
+    await buy(agent, { titleId: movie.id });
+    const ok = await agent.post("/playback").send({ titleId: movie.id, deviceId: DEVICE }).expect(200);
     expect((ok.body as PlaybackInfo).manifestUrl).toMatch(/\.m3u8/);
   });
 
+  it("a ticket for one title doesn't unlock another", async () => {
+    const { agent } = await userWithTicket("big-buck-bunny");
+    const other = await getTitle("signal-test");
+    await agent.post("/playback").send({ titleId: other.id, deviceId: DEVICE }).expect(402);
+  });
+
   it("resolves series episodes and the next episode", async () => {
-    const { agent } = await subscribedUser();
-    const show = await getTitle("the-long-harbor");
+    const { agent, title: show } = await userWithTicket("the-long-harbor");
     const s1 = show.seasons[0]!;
     const lastOfS1 = s1.episodes.at(-1)!;
 
-    const first: PlaybackInfo = (await agent.post("/playback").send({ titleId: show.id }).expect(200)).body;
+    const first: PlaybackInfo = (await agent.post("/playback").send({ titleId: show.id, deviceId: DEVICE }).expect(200)).body;
     expect(first.episode?.id).toBe(s1.episodes[0]!.id);
 
     const crossSeason: PlaybackInfo = (
-      await agent.post("/playback").send({ titleId: show.id, episodeId: lastOfS1.id }).expect(200)
+      await agent.post("/playback").send({ titleId: show.id, episodeId: lastOfS1.id, deviceId: DEVICE }).expect(200)
     ).body;
     expect(crossSeason.nextEpisodeId).toBe(show.seasons[1]!.episodes[0]!.id);
 
-    await agent.post("/playback").send({ titleId: show.id, episodeId: "bogus" }).expect(404);
+    await agent.post("/playback").send({ titleId: show.id, episodeId: "bogus", deviceId: DEVICE }).expect(404);
   });
 });
 
 describe("viewer state", () => {
   it("tracks progress, resumes, and builds continue watching", async () => {
-    const { agent } = await subscribedUser();
-    const movie = await getTitle("tears-of-steel");
+    const { agent, title: movie } = await userWithTicket("tears-of-steel");
     const show = await getTitle("orbit-kitchen");
     const ep2 = show.seasons[0]!.episodes[1]!;
 
@@ -114,7 +114,7 @@ describe("viewer state", () => {
     expect(cw.map((i: { title: TitleSummary }) => i.title.slug)).toEqual(["orbit-kitchen", "tears-of-steel"]);
     expect(cw[0].episode.id).toBe(ep2.id);
 
-    const resume: PlaybackInfo = (await agent.post("/playback").send({ titleId: movie.id }).expect(200)).body;
+    const resume: PlaybackInfo = (await agent.post("/playback").send({ titleId: movie.id, deviceId: DEVICE }).expect(200)).body;
     expect(resume.resumeFromSec).toBe(120);
 
     // Finishing the movie removes it from continue watching.
@@ -134,15 +134,5 @@ describe("viewer state", () => {
 
     await agent.delete(`/me/list/${movie.id}`).expect(204);
     expect((await agent.get("/me/list").expect(200)).body).toHaveLength(0);
-  });
-});
-
-describe("billing", () => {
-  it("lists plans and rejects unknown plans", async () => {
-    const res = await request(app).get("/billing/plans").expect(200);
-    expect(res.body.plans.map((p: { id: string }) => p.id)).toEqual(["basic", "standard", "premium"]);
-
-    const { agent } = await signUp();
-    await agent.post("/billing/checkout").send({ planId: "platinum" }).expect(400);
   });
 });

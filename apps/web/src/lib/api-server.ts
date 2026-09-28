@@ -1,6 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
-import type { ContinueWatchingItem, Me, Plan, TitleSummary } from "@ott/shared";
+import type { ContinueWatchingItem, Me, Ticket, TitleSummary } from "@ott/shared";
 
 const API_URL = process.env.API_URL ?? "http://localhost:4000";
 
@@ -33,4 +33,4 @@ export async function getMe(): Promise<Me | null> {
 
 export const getContinueWatching = () => apiGet<ContinueWatchingItem[]>("/me/continue-watching");
 export const getMyList = () => apiGet<TitleSummary[]>("/me/list");
-export const getPlans = () => apiGet<{ plans: Plan[]; devBilling: boolean }>("/billing/plans");
+export const getTickets = () => apiGet<Ticket[]>("/tickets");

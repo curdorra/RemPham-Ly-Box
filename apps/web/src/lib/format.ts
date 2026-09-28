@@ -6,8 +6,13 @@ export function formatDuration(sec: number): string {
   return h ? `${h}h ${m}m` : `${m}m`;
 }
 
-export function formatPrice(cents: number, currency: string): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(cents / 100);
+/** ₹79, or ₹79.50 when there are paise. */
+export function formatInr(paise: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: paise % 100 ? 2 : 0,
+  }).format(paise / 100);
 }
 
 const MATURITY_LABEL: Record<Maturity, string> = {

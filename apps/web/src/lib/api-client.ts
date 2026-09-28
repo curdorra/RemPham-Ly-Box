@@ -3,7 +3,7 @@
 import type { ApiError } from "@ott/shared";
 
 export class ClientApiError extends Error {
-  constructor(public status: number, public code: string, message: string) {
+  constructor(public status: number, public code: string, message: string, public details?: unknown) {
     super(message);
   }
 }
@@ -20,7 +20,7 @@ export async function api<T = void>(path: string, init: { method?: string; body?
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     const err = (data as ApiError | null)?.error;
-    throw new ClientApiError(res.status, err?.code ?? "error", err?.message ?? "Request failed");
+    throw new ClientApiError(res.status, err?.code ?? "error", err?.message ?? "Request failed", err?.details);
   }
   return data as T;
 }

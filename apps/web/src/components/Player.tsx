@@ -6,13 +6,18 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PlaybackInfo } from "@ott/shared";
 import { api, ClientApiError } from "@/lib/api-client";
+import { getDeviceId } from "@/lib/device";
 
 const PROGRESS_INTERVAL_MS = 10_000;
+/** Keeps this device's screen claimed; the API frees screens silent for ~90s. */
+const HEARTBEAT_INTERVAL_MS = 30_000;
+/** During a live opening night, drift beyond this is snapped back. */
+const LIVE_DRIFT_SEC = 5;
 
 type State =
   | { kind: "loading" }
   | { kind: "ready"; info: PlaybackInfo }
-  | { kind: "error"; code: string; message: string };
+  | { kind: "error"; code: string; message: string; details?: { startsAt?: string } };
 
 export function Player({ titleId, episodeId }: { titleId: string; episodeId?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -21,6 +26,9 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
   const [state, setState] = useState<State>({ kind: "loading" });
   const [ended, setEnded] = useState(false);
   const router = useRouter();
+  const deviceId = useRef<string>("");
+  // When the live grant was received, to compute where the live playhead is now.
+  const grantedAt = useRef(0);
 
   // 1. Request a playback grant (entitlement check happens server-side).
   useEffect(() => {
@@ -28,8 +36,13 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
     setState({ kind: "loading" });
     setEnded(false);
     positionRef.current = null;
-    api<PlaybackInfo>("/playback", { body: { titleId, episodeId } })
-      .then((info) => !cancelled && setState({ kind: "ready", info }))
+    deviceId.current ||= getDeviceId();
+    api<PlaybackInfo>("/playback", { body: { titleId, episodeId, deviceId: deviceId.current } })
+      .then((info) => {
+        if (cancelled) return;
+        grantedAt.current = performance.now();
+        setState({ kind: "ready", info });
+      })
       .catch((e) => {
         if (cancelled) return;
         if (e instanceof ClientApiError && e.status === 401) {
@@ -40,6 +53,7 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
           kind: "error",
           code: e instanceof ClientApiError ? e.code : "error",
           message: e instanceof Error ? e.message : "Playback failed",
+          details: e instanceof ClientApiError ? (e.details as { startsAt?: string } | undefined) : undefined,
         });
       });
     return () => {
@@ -78,6 +92,39 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
       };
     }
     setState({ kind: "error", code: "unsupported", message: "This browser cannot play HLS video." });
+  }, [info]);
+
+  // Where everyone else in the hall is right now.
+  const livePosition = useCallback(
+    () => (info?.live ? info.live.offsetSec + (performance.now() - grantedAt.current) / 1000 : 0),
+    [info],
+  );
+
+  // Keep the screen claimed while playing; give it back on close.
+  useEffect(() => {
+    if (!info) return;
+    const body = { ticketId: info.ticket.id, deviceId: deviceId.current };
+    const timer = setInterval(() => {
+      api("/playback/heartbeat", { body }).catch((e) => {
+        if (e instanceof ClientApiError && (e.code === "too_many_screens" || e.code === "ticket_required")) {
+          videoRef.current?.pause();
+          setState({ kind: "error", code: e.code, message: e.message });
+        }
+      });
+    }, HEARTBEAT_INTERVAL_MS);
+    const release = () =>
+      void fetch("/api/playback/release", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+        keepalive: true,
+      });
+    window.addEventListener("pagehide", release);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("pagehide", release);
+      release();
+    };
   }, [info]);
 
   // 3. Report progress periodically, on pause, and when leaving the page.
@@ -137,6 +184,12 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
             }
           }}
           onPause={() => reportProgress()}
+          onSeeking={(e) => {
+            // Opening nights play in sync: no skipping ahead or back.
+            if (!info.live) return;
+            const target = livePosition();
+            if (Math.abs(e.currentTarget.currentTime - target) > LIVE_DRIFT_SEC) e.currentTarget.currentTime = target;
+          }}
           onEnded={() => {
             reportProgress();
             setEnded(true);
@@ -149,6 +202,7 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
           ← Back
         </button>
         <p className="truncate font-semibold">{heading}</p>
+        {info?.live && <span className="rounded bg-brand px-2 py-0.5 text-xs font-bold">LIVE · OPENING NIGHT</span>}
       </div>
 
       {state.kind === "loading" && <p className="text-muted">Loading…</p>}
@@ -156,10 +210,13 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
       {state.kind === "error" && (
         <div className="max-w-md space-y-4 p-6 text-center">
           <p className="text-lg">{state.message}</p>
-          {state.code === "subscription_required" && (
-            <Link href="/plans" className="inline-block rounded bg-brand px-5 py-2 font-semibold hover:bg-brand-hover">
-              Choose a plan
-            </Link>
+          {state.code === "premiere_not_started" && state.details?.startsAt && (
+            <p className="text-white/70">Doors open at {new Date(state.details.startsAt).toLocaleString()}.</p>
+          )}
+          {state.code === "ticket_required" && (
+            <button onClick={() => router.back()} className="inline-block rounded bg-brand px-5 py-2 font-semibold hover:bg-brand-hover">
+              Get a ticket
+            </button>
           )}
         </div>
       )}

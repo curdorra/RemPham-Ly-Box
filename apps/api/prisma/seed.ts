@@ -8,15 +8,20 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import type { Maturity, TitleType } from "../src/generated/prisma/client.js";
 
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
+// Same `?schema=` handling as src/lib/db.ts (kept local so seeding doesn't need the app config).
+const dbUrl = new URL(process.env.DATABASE_URL!);
+const schema = dbUrl.searchParams.get("schema") ?? undefined;
+dbUrl.searchParams.delete("schema");
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: dbUrl.toString() }, { schema }) });
 
 const STREAMS = {
   bigBuckBunny: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
   tearsOfSteel: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
   appleBipBop: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
   muxTos: "https://test-streams.mux.dev/tos_ismc/main.m3u8",
+  sintel: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
 };
-const streamList = Object.values(STREAMS);
+const streamList = [STREAMS.bigBuckBunny, STREAMS.tearsOfSteel, STREAMS.appleBipBop, STREAMS.muxTos];
 
 const art = (seed: string, w: number, h: number) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
@@ -39,7 +44,18 @@ interface SeedTitle {
   maturity: Maturity;
   genres: string[];
   cast: string[];
+  directors?: string[];
+  tags?: string[];
+  language?: string;
+  altNames?: string[];
+  /** Movies: [introStart, introEnd, creditsStart] in seconds. */
+  markers?: [number, number, number];
   featured?: boolean;
+  /** Ticket price in rupees. */
+  price: number;
+  rentalHours?: number;
+  /** Days from now until an opening night at 7 PM IST (creates a screening). */
+  openingNightInDays?: number;
   durationSec?: number;
   manifestUrl?: string;
   seasons?: { name: string; episodes: string[] }[];
@@ -47,7 +63,31 @@ interface SeedTitle {
 
 const TITLES: SeedTitle[] = [
   {
+    slug: "sintel",
+    directors: ["Colin Levy"],
+    tags: ["fantasy", "dragons", "quest"],
+    language: "English",
+    markers: [0, 45, 800],
+    price: 99,
+    openingNightInDays: 5,
+    type: "MOVIE",
+    name: "Sintel",
+    synopsis: "A lonely young woman searches the world for the baby dragon she once rescued. Opens with an opening night.",
+    year: 2010,
+    maturity: "PG13",
+    genres: ["animation", "drama"],
+    cast: ["Halina Reijn", "Thom Hoffman"],
+    featured: true,
+    durationSec: 888,
+    manifestUrl: STREAMS.sintel,
+  },
+  {
     slug: "big-buck-bunny",
+    directors: ["Sacha Goedegebure"],
+    tags: ["family", "funny", "short"],
+    language: "English",
+    markers: [0, 25, 575],
+    price: 49,
     type: "MOVIE",
     name: "Big Buck Bunny",
     synopsis: "A giant, gentle rabbit takes a stand against three bullying rodents in this Blender Foundation open movie.",
@@ -61,6 +101,11 @@ const TITLES: SeedTitle[] = [
   },
   {
     slug: "tears-of-steel",
+    directors: ["Ian Hubert"],
+    tags: ["robots", "future", "action"],
+    language: "English",
+    markers: [0, 30, 690],
+    price: 79,
     type: "MOVIE",
     name: "Tears of Steel",
     synopsis: "In a future Amsterdam, a group of scientists attempt to save the world from destructive robots.",
@@ -74,6 +119,10 @@ const TITLES: SeedTitle[] = [
   },
   {
     slug: "signal-test",
+    directors: ["Apple Developer"],
+    tags: ["short"],
+    language: "English",
+    price: 29,
     type: "MOVIE",
     name: "Signal Test",
     synopsis: "A short about calibration, color bars, and the quiet beauty of a perfectly-aligned picture.",
@@ -86,6 +135,12 @@ const TITLES: SeedTitle[] = [
   },
   {
     slug: "the-long-harbor",
+    directors: ["Mai Tran"],
+    tags: ["mystery", "small town", "storm"],
+    language: "Mizo",
+    altNames: ["Hmun Rei Taka Harbor"],
+    price: 149,
+    rentalHours: 168,
     type: "SERIES",
     name: "The Long Harbor",
     synopsis: "A fishing town's secrets surface when a storm washes a stranger ashore.",
@@ -101,6 +156,11 @@ const TITLES: SeedTitle[] = [
   },
   {
     slug: "orbit-kitchen",
+    directors: ["Hana Sato"],
+    tags: ["food", "funny", "space"],
+    language: "English",
+    price: 99,
+    rentalHours: 168,
     type: "SERIES",
     name: "Orbit Kitchen",
     synopsis: "Chefs aboard a space station improvise meals with whatever the last cargo drop brought.",
@@ -112,6 +172,11 @@ const TITLES: SeedTitle[] = [
   },
   {
     slug: "wild-deltas",
+    directors: ["Amara Okafor"],
+    tags: ["nature", "animals", "family"],
+    language: "English",
+    price: 99,
+    rentalHours: 168,
     type: "SERIES",
     name: "Wild Deltas",
     synopsis: "A journey through the world's great river deltas and the creatures that depend on them.",
@@ -140,6 +205,15 @@ async function main() {
       maturity: t.maturity,
       cast: t.cast,
       featured: t.featured ?? false,
+      pricePaise: t.price * 100,
+      directors: t.directors ?? [],
+      tags: t.tags ?? [],
+      language: t.language ?? "Mizo",
+      altNames: t.altNames ?? [],
+      introStartSec: t.markers?.[0] ?? null,
+      introEndSec: t.markers?.[1] ?? null,
+      creditsStartSec: t.markers?.[2] ?? null,
+      rentalHours: t.rentalHours ?? 48,
       durationSec: t.durationSec ?? null,
       manifestUrl: t.manifestUrl ?? null,
       posterUrl: art(`${t.slug}-poster`, 400, 600),
@@ -174,7 +248,65 @@ async function main() {
       }
     }
   }
-  console.log(`Seeded ${GENRES.length} genres and ${TITLES.length} titles.`);
+  // Opening nights: one per title that has one, created only if missing.
+  for (const t of TITLES.filter((x) => x.openingNightInDays)) {
+    const title = await prisma.title.findUniqueOrThrow({ where: { slug: t.slug } });
+    if (await prisma.screening.count({ where: { titleId: title.id } })) continue;
+    const startsAt = new Date();
+    startsAt.setUTCDate(startsAt.getUTCDate() + t.openingNightInDays!);
+    startsAt.setUTCHours(13, 30, 0, 0); // 7:00 PM IST
+    await prisma.screening.create({ data: { titleId: title.id, startsAt } });
+  }
+
+  // Partner kitchen menu. Local items are placeholders to confirm with the kitchen.
+  const kitchen =
+    (await prisma.kitchen.findFirst({ where: { name: "Demo Partner Kitchen" } })) ??
+    (await prisma.kitchen.create({ data: { name: "Demo Partner Kitchen", phone: "+91 90000 00000" } }));
+  const SNACKS = [
+    ["butter-popcorn", "Butter popcorn", "Large tub, freshly popped", 120],
+    ["caramel-popcorn", "Caramel popcorn", "Salted caramel, large tub", 140],
+    ["sanpiau", "Sanpiau", "Local favourite, warm bowl", 80],
+    ["chowmein", "Chowmein", "Veg or pork", 110],
+    ["thingpui", "Thingpui", "Hot tea, a flask for two", 30],
+    ["cold-drink", "Cold drink", "Chilled, 500 ml", 50],
+  ] as const;
+  for (const [i, [slug, name, description, rupees]] of SNACKS.entries()) {
+    const data = { name, description, pricePaise: rupees * 100, sort: i, kitchenId: kitchen.id };
+    await prisma.snackItem.upsert({ where: { slug }, create: { slug, ...data }, update: data });
+  }
+
+  // Our physical cinema. Booking is on BookMyShow; {date} is YYYYMMDD.
+  const cinema = await prisma.cinema.upsert({
+    where: { slug: "remphamly-aizawl" },
+    create: {
+      slug: "remphamly-aizawl",
+      name: "RemPhamLy Cinema",
+      city: "Aizawl",
+      address: "Aizawl, Mizoram",
+      bookingUrlTemplate: "https://in.bookmyshow.com/cinemas/aizawl/remphamly-cinema-aizawl/buytickets/RHCA/{date}",
+    },
+    update: {},
+  });
+  // Placeholder showtimes for local development only — staff enter real ones.
+  if (!(await prisma.showtime.count({ where: { cinemaId: cinema.id, startsAt: { gte: new Date() } } }))) {
+    const bySlug = new Map((await prisma.title.findMany({ select: { id: true, slug: true, name: true } })).map((t) => [t.slug, t]));
+    const plan = [
+      ["sintel", 7, 0], // 12:30 IST (UTC 07:00)
+      ["tears-of-steel", 10, 0], // 15:30 IST
+      ["sintel", 12, 30], // 18:00 IST
+    ] as const;
+    for (let day = 1; day <= 3; day++) {
+      for (const [slug, h, m] of plan) {
+        const t = bySlug.get(slug)!;
+        const startsAt = new Date();
+        startsAt.setUTCDate(startsAt.getUTCDate() + day);
+        startsAt.setUTCHours(h, m, 0, 0);
+        await prisma.showtime.create({ data: { cinemaId: cinema.id, titleId: t.id, filmName: t.name, startsAt, format: "2D" } });
+      }
+    }
+  }
+
+  console.log(`Seeded ${GENRES.length} genres, ${TITLES.length} titles, ${SNACKS.length} snacks and cinema ${cinema.name}.`);
 }
 
 main()

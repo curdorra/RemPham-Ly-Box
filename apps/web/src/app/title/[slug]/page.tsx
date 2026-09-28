@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { TitleDetail } from "@ott/shared";
+import { BuyTicketButton } from "@/components/BuyTicketButton";
 import { EpisodeList } from "@/components/EpisodeList";
 import { MyListButton } from "@/components/MyListButton";
 import { ApiError, apiGet } from "@/lib/api-server";
@@ -46,6 +47,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
             </Link>
             <MyListButton titleId={title.id} initial={title.inMyList} />
           </div>
+          <BuyTicketButton title={title} />
         </div>
       </section>
       <div className="grid gap-10 px-4 sm:px-10 lg:grid-cols-[2fr_1fr]">

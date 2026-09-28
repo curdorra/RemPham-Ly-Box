@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
   moduleFormat = "esm"
 }
 
@@ -25,38 +25,84 @@ enum Maturity {
   TVMA
 }
 
-enum SubscriptionStatus {
-  ACTIVE
-  TRIALING
-  PAST_DUE
+enum Role {
+  VIEWER
+  ADMIN
+}
+
+/// STANDARD: one screen. TOGETHER: several screens at once for a household or
+/// family spread across places. Limits live in @ott/shared TICKET_TIERS.
+enum TicketTier {
+  STANDARD
+  TOGETHER
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  EXPIRED
+  REFUNDED
+}
+
+enum DeliveryWhen {
+  ASAP
+  SCHEDULED
+}
+
+enum SnackOrderStatus {
+  AWAITING_PAYMENT
+  PLACED
+  ACCEPTED
+  OUT_FOR_DELIVERY
+  DELIVERED
   CANCELED
-  INCOMPLETE
 }
 
 model User {
-  id               String          @id @default(cuid())
-  email            String          @unique
-  passwordHash     String
-  name             String
-  stripeCustomerId String?         @unique
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  subscription     Subscription?
-  progress         WatchProgress[]
-  myList           MyListItem[]
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  role         Role         @default(VIEWER)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  orders       Order[]
+  tickets      Ticket[]     @relation("TicketHolder")
+  reminders    Reminder[]
+  snackOrders  SnackOrder[]
+  profiles     Profile[]
 }
 
-model Subscription {
-  id                   String             @id @default(cuid())
-  userId               String             @unique
-  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId               String
-  status               SubscriptionStatus
-  stripeSubscriptionId String?            @unique
-  currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean            @default(false)
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+/// Viewers sharing an account (a household). Tickets belong to the account;
+/// history, My List, ratings and recommendations belong to the profile.
+model Profile {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  /// Kids profiles only see family-friendly maturity ratings.
+  kids      Boolean         @default(false)
+  /// Avatar colour key, chosen by the client.
+  avatar    String          @default("oxblood")
+  createdAt DateTime        @default(now())
+  progress  WatchProgress[]
+  myList    MyListItem[]
+  ratings   Rating[]
+
+  @@unique([userId, name])
+}
+
+/// Thumbs: -1 = not for me, 1 = like, 2 = love.
+model Rating {
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  titleId   String
+  title     Title    @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  value     Int
+  updatedAt DateTime @updatedAt
+
+  @@id([profileId, titleId])
+  @@index([titleId])
 }
 
 model Genre {
@@ -67,27 +113,48 @@ model Genre {
 }
 
 model Title {
-  id          String          @id @default(cuid())
-  slug        String          @unique
-  type        TitleType
-  name        String
-  synopsis    String
-  year        Int
-  maturity    Maturity
-  posterUrl   String
-  backdropUrl String
-  cast        String[]
-  featured    Boolean         @default(false)
-  published   Boolean         @default(true)
+  id              String          @id @default(cuid())
+  slug            String          @unique
+  type            TitleType
+  name            String
+  synopsis        String
+  year            Int
+  maturity        Maturity
+  posterUrl       String
+  backdropUrl     String
+  cast            String[]
+  directors       String[]        @default([])
+  /// Spoken language, e.g. "Mizo".
+  language        String          @default("Mizo")
+  /// Free-form discovery tags ("family", "church", "based on a true story").
+  tags            String[]        @default([])
+  /// Other spellings people might search for (Mizo/English titles).
+  altNames        String[]        @default([])
+  featured        Boolean         @default(false)
+  published       Boolean         @default(true)
   /// Movies only: runtime and HLS master manifest.
-  durationSec Int?
-  manifestUrl String?
-  genres      Genre[]
-  seasons     Season[]
-  progress    WatchProgress[]
-  inLists     MyListItem[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  durationSec     Int?
+  manifestUrl     String?
+  /// Public trailer (never gated).
+  trailerUrl      String?
+  /// Ticket price for the STANDARD tier, in paise (₹79 = 7900).
+  pricePaise      Int             @default(7900)
+  /// How long a ticket lasts once the viewer first presses play.
+  rentalHours     Int             @default(48)
+  /// Movies only: "Skip intro" / "Next" markers for the player.
+  introStartSec   Int?
+  introEndSec     Int?
+  creditsStartSec Int?
+  genres          Genre[]
+  seasons         Season[]
+  progress        WatchProgress[]
+  inLists         MyListItem[]
+  tickets         Ticket[]
+  screenings      Screening[]
+  ratings         Rating[]
+  showtimes       Showtime[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([published, type])
 }
@@ -104,26 +171,29 @@ model Season {
 }
 
 model Episode {
-  id           String          @id @default(cuid())
-  seasonId     String
-  season       Season          @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  number       Int
-  name         String
-  synopsis     String
-  durationSec  Int
-  thumbnailUrl String
-  manifestUrl  String
-  progress     WatchProgress[]
+  id              String          @id @default(cuid())
+  seasonId        String
+  season          Season          @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  number          Int
+  name            String
+  synopsis        String
+  durationSec     Int
+  thumbnailUrl    String
+  manifestUrl     String
+  introStartSec   Int?
+  introEndSec     Int?
+  creditsStartSec Int?
+  progress        WatchProgress[]
 
   @@unique([seasonId, number])
 }
 
-/// One row per (user, playable media). mediaId = episodeId ?? titleId so the
+/// One row per (profile, playable media). mediaId = episodeId ?? titleId so the
 /// unique constraint works without nullable columns.
 model WatchProgress {
   id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   titleId     String
   title       Title    @relation(fields: [titleId], references: [id], onDelete: Cascade)
   episodeId   String?
@@ -134,16 +204,198 @@ model WatchProgress {
   completed   Boolean  @default(false)
   updatedAt   DateTime @updatedAt
 
-  @@unique([userId, mediaId])
-  @@index([userId, updatedAt])
+  @@unique([profileId, mediaId])
+  @@index([profileId, updatedAt])
 }
 
 model MyListItem {
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   titleId   String
   title     Title    @relation(fields: [titleId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
-  @@id([userId, titleId])
+  @@id([profileId, titleId])
+}
+
+/// One checkout: tickets and/or a snack order, paid in a single payment.
+model Order {
+  id                String      @id @default(cuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status            OrderStatus @default(PENDING)
+  amountPaise       Int
+  currency          String      @default("INR")
+  /// "dev" (instant, non-production only) or "razorpay".
+  provider          String
+  providerOrderId   String?     @unique
+  providerPaymentId String?
+  /// Seats are held until this time while the order is PENDING.
+  expiresAt         DateTime
+  paidAt            DateTime?
+  createdAt         DateTime    @default(now())
+  tickets           Ticket[]
+  snackOrder        SnackOrder?
+
+  @@index([userId, createdAt])
+  @@index([status, paidAt])
+}
+
+/// A single admission. Buying 3 creates 3 tickets: the first is held by the
+/// buyer, the rest carry a gift code until someone redeems them.
+model Ticket {
+  id            String            @id @default(cuid())
+  orderId       String
+  order         Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  titleId       String
+  title         Title             @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  holderId      String?
+  holder        User?             @relation("TicketHolder", fields: [holderId], references: [id], onDelete: SetNull)
+  tier          TicketTier
+  pricePaise    Int
+  giftCode      String?           @unique
+  screeningId   String?
+  screening     Screening?        @relation(fields: [screeningId], references: [id], onDelete: SetNull)
+  /// Seat label such as "D7"; only for screenings.
+  seat          String?
+  /// On-demand window: starts at first play.
+  firstPlayedAt DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime          @default(now())
+  sessions      PlaybackSession[]
+
+  @@unique([screeningId, seat])
+  @@index([holderId, titleId])
+  @@index([titleId, createdAt])
+}
+
+/// An opening night: one start time, everyone watches together, seats are a
+/// virtual hall. After it ends, its tickets work like normal on-demand tickets.
+model Screening {
+  id          String     @id @default(cuid())
+  titleId     String
+  title       Title      @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  startsAt    DateTime
+  /// Price override in paise; defaults to the title price.
+  pricePaise  Int?
+  rows        Int        @default(10)
+  seatsPerRow Int        @default(14)
+  /// Draw an aisle after these seat numbers (layout only).
+  aisleAfter  Int[]      @default([3, 11])
+  createdAt   DateTime   @default(now())
+  tickets     Ticket[]
+  reminders   Reminder[]
+
+  @@index([startsAt])
+}
+
+model Reminder {
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  screeningId String
+  screening   Screening @relation(fields: [screeningId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@id([userId, screeningId])
+}
+
+/// One row per (ticket, device) that is currently playing; enforces the
+/// tier's screen limit. Stale rows (no heartbeat) stop counting.
+model PlaybackSession {
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  deviceId   String
+  lastSeenAt DateTime @default(now())
+
+  @@unique([ticketId, deviceId])
+}
+
+/// A partner kitchen that cooks and delivers snacks.
+model Kitchen {
+  id     String       @id @default(cuid())
+  name   String
+  phone  String
+  active Boolean      @default(true)
+  items  SnackItem[]
+  orders SnackOrder[]
+}
+
+model SnackItem {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  kitchenId   String
+  kitchen     Kitchen          @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  pricePaise  Int
+  available   Boolean          @default(true)
+  sort        Int              @default(0)
+  lines       SnackOrderLine[]
+}
+
+model SnackOrder {
+  id           String           @id @default(cuid())
+  orderId      String           @unique
+  order        Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kitchenId    String
+  kitchen      Kitchen          @relation(fields: [kitchenId], references: [id])
+  status       SnackOrderStatus @default(AWAITING_PAYMENT)
+  when         DeliveryWhen
+  scheduledFor DateTime?
+  address      String
+  phone        String
+  note         String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  lines        SnackOrderLine[]
+
+  @@index([kitchenId, status])
+}
+
+model SnackOrderLine {
+  id           String     @id @default(cuid())
+  snackOrderId String
+  snackOrder   SnackOrder @relation(fields: [snackOrderId], references: [id], onDelete: Cascade)
+  itemId       String
+  item         SnackItem  @relation(fields: [itemId], references: [id])
+  /// Snapshot at purchase time.
+  name         String
+  unitPaise    Int
+  qty          Int
+}
+
+/// Our physical cinema(s). Booking happens on BookMyShow; we deep-link to it.
+model Cinema {
+  id                 String     @id @default(cuid())
+  slug               String     @unique
+  name               String
+  city               String
+  address            String
+  /// BookMyShow buy-tickets URL with {date} = YYYYMMDD (local date).
+  bookingUrlTemplate String
+  timeZone           String     @default("Asia/Kolkata")
+  active             Boolean    @default(true)
+  showtimes          Showtime[]
+}
+
+/// A show at the physical cinema, entered by staff. Films on the big screen
+/// may not be in our catalog yet, so the name/poster live here too.
+model Showtime {
+  id        String   @id @default(cuid())
+  cinemaId  String
+  cinema    Cinema   @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+  titleId   String?
+  title     Title?   @relation(fields: [titleId], references: [id], onDelete: SetNull)
+  filmName  String
+  posterUrl String?
+  language  String?
+  /// "2D", "3D"…
+  format    String   @default("2D")
+  startsAt  DateTime
+  createdAt DateTime @default(now())
+
+  @@index([cinemaId, startsAt])
 }

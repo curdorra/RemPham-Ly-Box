@@ -23,7 +23,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     const form = Object.fromEntries(new FormData(e.currentTarget));
     try {
       await api(`/auth/${mode}`, { body: form });
-      router.push(safeNext(params.get("next"), mode === "signup" ? "/plans" : "/"));
+      router.push(safeNext(params.get("next"), "/"));
       router.refresh();
     } catch (err) {
       setError(err instanceof ClientApiError ? err.message : "Something went wrong");

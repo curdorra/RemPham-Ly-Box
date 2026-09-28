@@ -16,6 +16,10 @@ export function toTitleSummary(t: Title & { genres: Genre[] }): TitleSummary {
     backdropUrl: t.backdropUrl,
     genres: t.genres.map((g) => ({ slug: g.slug, name: g.name })),
     durationSec: t.durationSec,
+    language: t.language,
+    trailerUrl: t.trailerUrl,
+    pricePaise: t.pricePaise,
+    rentalHours: t.rentalHours,
   };
 }
 

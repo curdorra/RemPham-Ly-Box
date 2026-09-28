@@ -1,8 +1,9 @@
 import { Router } from "express";
 import type { ContinueWatchingItem } from "@ott/shared";
-import { progressSchema } from "@ott/shared";
+import { progressSchema, ratingSchema } from "@ott/shared";
 import { prisma } from "../lib/db.js";
 import { HttpError, notFound } from "../lib/errors.js";
+import { currentProfile, visibleTitles } from "../lib/profiles.js";
 import { titleSummaryInclude, toEpisode, toTitleSummary } from "../lib/serialize.js";
 import { requireAuth } from "../middleware/auth.js";
 
@@ -13,8 +14,9 @@ meRouter.use(requireAuth);
 const COMPLETION_RATIO = 0.95;
 
 meRouter.get("/list", async (req, res) => {
+  const profile = await currentProfile(req);
   const items = await prisma.myListItem.findMany({
-    where: { userId: req.userId!, title: { published: true } },
+    where: { profileId: profile.id, title: await visibleTitles(req) },
     include: { title: { include: titleSummaryInclude } },
     orderBy: { createdAt: "desc" },
   });
@@ -22,23 +24,26 @@ meRouter.get("/list", async (req, res) => {
 });
 
 meRouter.put("/list/:titleId", async (req, res) => {
-  const title = await prisma.title.findFirst({ where: { id: req.params.titleId, published: true } });
+  const profile = await currentProfile(req);
+  const title = await prisma.title.findFirst({ where: { ...(await visibleTitles(req)), id: req.params.titleId } });
   if (!title) throw notFound("Title");
   await prisma.myListItem.upsert({
-    where: { userId_titleId: { userId: req.userId!, titleId: title.id } },
-    create: { userId: req.userId!, titleId: title.id },
+    where: { profileId_titleId: { profileId: profile.id, titleId: title.id } },
+    create: { profileId: profile.id, titleId: title.id },
     update: {},
   });
   res.status(204).end();
 });
 
 meRouter.delete("/list/:titleId", async (req, res) => {
-  await prisma.myListItem.deleteMany({ where: { userId: req.userId!, titleId: req.params.titleId } });
+  const profile = await currentProfile(req);
+  await prisma.myListItem.deleteMany({ where: { profileId: profile.id, titleId: req.params.titleId } });
   res.status(204).end();
 });
 
 meRouter.put("/progress", async (req, res) => {
   const input = progressSchema.parse(req.body);
+  const profile = await currentProfile(req);
   const episodeId = input.episodeId ?? null;
 
   if (episodeId) {
@@ -56,16 +61,17 @@ meRouter.put("/progress", async (req, res) => {
   const data = { positionSec, durationSec: input.durationSec, completed };
 
   await prisma.watchProgress.upsert({
-    where: { userId_mediaId: { userId: req.userId!, mediaId } },
-    create: { userId: req.userId!, titleId: input.titleId, episodeId, mediaId, ...data },
+    where: { profileId_mediaId: { profileId: profile.id, mediaId } },
+    create: { profileId: profile.id, titleId: input.titleId, episodeId, mediaId, ...data },
     update: data,
   });
   res.status(204).end();
 });
 
 meRouter.get("/continue-watching", async (req, res) => {
+  const profile = await currentProfile(req);
   const rows = await prisma.watchProgress.findMany({
-    where: { userId: req.userId!, completed: false, positionSec: { gt: 0 }, title: { published: true } },
+    where: { profileId: profile.id, completed: false, positionSec: { gt: 0 }, title: await visibleTitles(req) },
     include: { title: { include: titleSummaryInclude }, episode: { include: { season: true } } },
     orderBy: { updatedAt: "desc" },
     take: 50,
@@ -86,4 +92,40 @@ meRouter.get("/continue-watching", async (req, res) => {
     });
   }
   res.json(items.slice(0, 20));
+});
+
+/** Thumbs up/down/love. Feeds recommendations. */
+meRouter.put("/ratings/:titleId", async (req, res) => {
+  const { value } = ratingSchema.parse(req.body);
+  const profile = await currentProfile(req);
+  const title = await prisma.title.findFirst({ where: { ...(await visibleTitles(req)), id: req.params.titleId } });
+  if (!title) throw notFound("Title");
+  await prisma.rating.upsert({
+    where: { profileId_titleId: { profileId: profile.id, titleId: title.id } },
+    create: { profileId: profile.id, titleId: title.id, value },
+    update: { value },
+  });
+  res.status(204).end();
+});
+
+meRouter.delete("/ratings/:titleId", async (req, res) => {
+  const profile = await currentProfile(req);
+  await prisma.rating.deleteMany({ where: { profileId: profile.id, titleId: req.params.titleId } });
+  res.status(204).end();
+});
+
+/** Everything this profile has watched, most recent first ("Watch it again"). */
+meRouter.get("/history", async (req, res) => {
+  const profile = await currentProfile(req);
+  const rows = await prisma.watchProgress.findMany({
+    where: { profileId: profile.id, title: await visibleTitles(req) },
+    include: { title: { include: titleSummaryInclude } },
+    orderBy: { updatedAt: "desc" },
+    take: 200,
+  });
+  const seen = new Set<string>();
+  const items = rows
+    .filter((r) => !seen.has(r.titleId) && !!seen.add(r.titleId))
+    .map((r) => ({ title: toTitleSummary(r.title), lastWatchedAt: r.updatedAt.toISOString(), completed: r.completed }));
+  res.json(items);
 });

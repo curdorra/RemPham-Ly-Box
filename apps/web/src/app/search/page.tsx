@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { Genre, TitleSummary } from "@ott/shared";
+import type { Genre, SearchResponse, TitleSummary } from "@ott/shared";
 import { TitleGrid } from "@/components/TitleGrid";
 import { apiGet } from "@/lib/api-server";
 
@@ -15,10 +15,19 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (sp.genre) query.set("genre", sp.genre);
   if (sp.type === "MOVIE" || sp.type === "SERIES") query.set("type", sp.type);
 
-  const [results, genres] = await Promise.all([
+  // Free text goes to the typo-tolerant search engine; filters alone browse the catalog.
+  const [results, genres, found] = await Promise.all([
     apiGet<{ total: number; items: TitleSummary[] }>(`/catalog/titles?${query}`),
     apiGet<Genre[]>("/catalog/genres"),
+    sp.q ? apiGet<SearchResponse>(`/search?${new URLSearchParams({ q: sp.q })}`) : null,
   ]);
+  if (found) {
+    const items = found.results
+      .map((r) => r.title)
+      .filter((t) => (!sp.type || t.type === sp.type) && (!sp.genre || t.genres.some((g) => g.slug === sp.genre)));
+    results.items = items;
+    results.total = items.length;
+  }
 
   const withParam = (key: keyof Search, value?: string) => {
     const next = new URLSearchParams(query);
@@ -56,6 +65,21 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       </div>
 
       <p className="text-sm text-muted">{results.total} result{results.total === 1 ? "" : "s"}</p>
+      {found?.didYouMean && (
+        <p>
+          Did you mean{" "}
+          <Link href={`/search?${new URLSearchParams({ q: found.didYouMean })}`} className="text-brand hover:underline">
+            {found.didYouMean}
+          </Link>
+          ?
+        </p>
+      )}
+      {!!found?.people.length && (
+        <p className="text-sm text-white/80">
+          People:{" "}
+          {found.people.map((p) => `${p.name} (${p.role === "director" ? "director" : "cast"})`).join(", ")}
+        </p>
+      )}
       {results.items.length ? <TitleGrid titles={results.items} /> : <p className="text-muted">Nothing matched.</p>}
     </div>
   );
