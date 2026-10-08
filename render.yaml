@@ -1,0 +1,29 @@
+# Render Blueprint: the API. (The website goes on Vercel; the database on Supabase.)
+services:
+  - type: web
+    name: rempham-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL        # Supabase "Session pooler" connection string
+        sync: false
+      - key: DATABASE_POOL_MAX
+        value: "5"
+      - key: WEB_ORIGIN          # e.g. https://rempham.vercel.app
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # Required in production by the API. Until Razorpay is set up, use any placeholder
+      # (payments will not work yet); see docs/deploy.md.
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
