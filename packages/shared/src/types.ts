@@ -398,3 +398,61 @@ export interface AdminSubtitles {
   hasVideo: boolean;
   languages: { lang: string; name: string }[];
 }
+
+// ── Staff statistics ────────────────────────────────────────────────────────
+
+export interface StatsTitleMoney {
+  titleId: string;
+  name: string;
+  tickets: number;
+  grossPaise: number;
+}
+
+export interface StatsTitleWatching {
+  titleId: string;
+  name: string;
+  /** Distinct profiles with watch progress updated in the range. */
+  viewers: number;
+  avgWatchSec: number;
+  /** 0–1. */
+  completionRate: number;
+  /** Share of viewers (0–1) who reached 10%, 20% … 100% of the runtime. */
+  dropOff: number[];
+}
+
+export interface AdminStats {
+  range: { from: string; to: string };
+  money: {
+    grossPaise: number;
+    tickets: number;
+    byTitle: StatsTitleMoney[];
+    /** One entry per calendar day in India time, zero-filled. */
+    byDay: { day: string; tickets: number; grossPaise: number }[];
+    byTier: { tier: TicketTier; tickets: number; grossPaise: number }[];
+    snackPaise: number;
+    snackOrders: number;
+    /** Gift codes sold in the range, and how many of those have been redeemed since. */
+    giftsIssued: number;
+    giftsRedeemed: number;
+  };
+  audience: { signUps: number; buyers: number; repeatBuyers: number };
+  watching: {
+    /** Playback sessions seen in the last 90 seconds. */
+    viewersNow: number;
+    avgWatchSec: number;
+    completionRate: number;
+    byTitle: StatsTitleWatching[];
+  };
+  openingNights: {
+    id: string;
+    titleId: string;
+    name: string;
+    startsAt: string;
+    sold: number;
+    capacity: number;
+    /** Sessions seen in the last 90 seconds on this screening's tickets. */
+    joinedNow: number;
+  }[];
+  /** Thumbs: -1 dislike, 1 like, 2 love. `approval` = (liked + loved) / count. */
+  ratings: { titleId: string; name: string; disliked: number; liked: number; loved: number; count: number; approval: number }[];
+}

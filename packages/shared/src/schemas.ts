@@ -280,3 +280,16 @@ export const uploadKindSchema = z.object({ kind: z.enum(["poster", "backdrop", "
 export const SUBTITLE_LANGS = ["en", "lus"] as const;
 export const subtitleLangSchema = z.enum(SUBTITLE_LANGS);
 export type SubtitleLang = z.infer<typeof subtitleLangSchema>;
+
+/** Stats window: the last N days, or a custom range of calendar days (inclusive, India time). */
+export const statsRangeSchema = z
+  .object({
+    days: z.coerce.number().int().min(1).max(366).optional(),
+    from: z.iso.date().optional(),
+    to: z.iso.date().optional(),
+  })
+  .refine((v) => (v.from === undefined) === (v.to === undefined), { message: "Give both from and to" })
+  .refine((v) => !v.from || !v.to || (v.from <= v.to && Date.parse(v.to) - Date.parse(v.from) < 366 * 86400_000), {
+    message: "The range must run forwards and be at most a year",
+  });
+export type StatsRangeInput = z.infer<typeof statsRangeSchema>;
