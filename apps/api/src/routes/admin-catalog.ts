@@ -6,6 +6,7 @@ import {
   seasonInputSchema,
   seasonUpdateSchema,
   slugify,
+  subtitleLangSchema,
   titleInputSchema,
   titleUpdateSchema,
   uploadKindSchema,
@@ -14,6 +15,7 @@ import { Prisma } from "../generated/prisma/client.js";
 import type { Episode, Genre, Season, Title } from "../generated/prisma/client.js";
 import { prisma } from "../lib/db.js";
 import { HttpError, notFound } from "../lib/errors.js";
+import { listSubtitles, putSubtitle, removeSubtitle } from "../lib/film-subtitles.js";
 import { IMAGE_TYPES, saveImage } from "../lib/media.js";
 import { catalogChanged } from "../lib/publishing.js";
 
@@ -258,3 +260,28 @@ adminCatalogRouter.post(
     res.status(201).json({ url });
   },
 );
+
+// ── Subtitles ───────────────────────────────────────────────────────────────
+
+async function movieSlug(id: string) {
+  const title = await loadTitle(id);
+  if (title.type !== "MOVIE") throw new HttpError(400, "not_a_movie", "Subtitles are added to films");
+  return title.slug;
+}
+
+adminCatalogRouter.get("/titles/:id/subtitles", async (req, res) => {
+  res.json(await listSubtitles(await movieSlug(req.params.id)));
+});
+
+/** PUT with the .srt or .vtt text as the body. Adds the language or replaces it. */
+adminCatalogRouter.put("/titles/:id/subtitles/:lang", express.text({ type: () => true, limit: "2mb" }), async (req, res) => {
+  const lang = subtitleLangSchema.parse(req.params.lang);
+  const slug = await movieSlug(req.params.id);
+  if (typeof req.body !== "string" || !req.body.trim()) throw new HttpError(400, "bad_subtitles", "Upload a subtitle file");
+  res.json(await putSubtitle(slug, lang, req.body));
+});
+
+adminCatalogRouter.delete("/titles/:id/subtitles/:lang", async (req, res) => {
+  const lang = subtitleLangSchema.parse(req.params.lang);
+  res.json(await removeSubtitle(await movieSlug(req.params.id), lang));
+});

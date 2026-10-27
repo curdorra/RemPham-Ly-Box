@@ -96,3 +96,47 @@ export function startPtsFromProbe(stderr: string): number {
   const m = stderr.match(/start: ([\d.]+)/);
   return m ? Math.round(Number(m[1]) * 90_000) : 0;
 }
+
+/** The `films/<slug>/package.json` that publish-film writes next to the playlists. */
+export interface FilmPackage {
+  /** First segment's start, in 90kHz ticks. */
+  startPts: number;
+  durationSec: number;
+  variants: string[];
+}
+
+/** "Mizo" for lus, the code itself for anything unknown. */
+export const subtitleName = (lang: string) => NAMES[lang] ?? lang;
+
+/** Quality names ("360p") from a master playlist's RESOLUTION attributes. */
+export function variantsFromMaster(master: string): string[] {
+  return [...master.matchAll(/#EXT-X-STREAM-INF:[^\n]*RESOLUTION=\d+x(\d+)/g)].map((m) => `${m[1]}p`);
+}
+
+/**
+ * Starting PTS (90kHz ticks) of an MPEG-TS segment, read from the PES headers,
+ * so the API doesn't need ffmpeg. Takes the earliest PTS among the first PES
+ * packet of each audio/video stream, which is what ffmpeg reports as "start".
+ */
+export function startPtsFromTs(ts: Uint8Array): number {
+  const firstPes = new Map<number, number>();
+  for (let off = 0; off + 188 <= ts.length; off += 188) {
+    if (ts[off] !== 0x47) throw new Error("Not an MPEG-TS segment");
+    if (!(ts[off + 1] & 0x40)) continue; // not the start of a PES packet
+    const pid = ((ts[off + 1] & 0x1f) << 8) | ts[off + 2];
+    if (firstPes.has(pid)) continue;
+    const afc = (ts[off + 3] >> 4) & 3;
+    if (!(afc & 1)) continue; // no payload
+    let p = off + 4;
+    if (afc & 2) p += 1 + ts[off + 4];
+    // PES: 00 00 01, stream id (C0-DF audio, E0-EF video), length(2), flags(2), header length, PTS…
+    if (ts[p] !== 0 || ts[p + 1] !== 0 || ts[p + 2] !== 1) continue; // PAT/PMT sections
+    const streamId = ts[p + 3];
+    if (streamId < 0xc0 || streamId > 0xef || !(ts[p + 7] & 0x80)) continue;
+    const b = ts.subarray(p + 9, p + 14);
+    const pts = ((b[0] >> 1) & 7) * 2 ** 30 + (b[1] << 22) + ((b[2] >> 1) << 15) + (b[3] << 7) + (b[4] >> 1);
+    firstPes.set(pid, pts);
+  }
+  if (!firstPes.size) throw new Error("No PTS found in the first segment");
+  return Math.min(...firstPes.values());
+}

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { AdminTitle } from "@ott/shared";
+import type { AdminSubtitles, AdminTitle } from "@ott/shared";
 import { DeleteTitle } from "@/components/admin/DeleteTitle";
 import { EpisodeManager } from "@/components/admin/EpisodeManager";
+import { SubtitleManager } from "@/components/admin/SubtitleManager";
 import { TitleForm } from "@/components/admin/TitleForm";
 import { ApiError, apiGet } from "@/lib/api-server";
 
@@ -18,6 +19,8 @@ export default async function EditTitlePage({ params }: { params: Promise<{ id: 
     }),
     apiGet<string[]>("/admin/genres"),
   ]);
+  // Storage hiccups shouldn't take the whole edit page down.
+  const subtitles = title.type === "MOVIE" ? await apiGet<AdminSubtitles>(`/admin/titles/${title.id}/subtitles`).catch(() => null) : null;
   return (
     <div className="max-w-4xl">
       <Link href="/admin/titles" className="text-sm text-ink-3 hover:text-ink">← Films & series</Link>
@@ -31,6 +34,7 @@ export default async function EditTitlePage({ params }: { params: Promise<{ id: 
       {/* Keyed so a save that changes the record (e.g. scheduled → published) re-seeds the form. */}
       <TitleForm key={title.id} title={title} genres={genres} />
       {title.type === "SERIES" && <EpisodeManager title={title} />}
+      {title.type === "MOVIE" && <SubtitleManager titleId={title.id} initial={subtitles} />}
       <DeleteTitle id={title.id} name={title.name} canDelete={title.ticketsSold === 0} />
     </div>
   );

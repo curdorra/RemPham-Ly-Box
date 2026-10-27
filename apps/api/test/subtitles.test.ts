@@ -7,7 +7,7 @@ import {
   subtitleFiles,
   toWebVtt,
   withSubtitles,
-} from "../scripts/lib/subtitles.js";
+} from "../src/lib/subtitles.js";
 
 // As ffmpeg writes it in publish-film.
 const MASTER = `#EXTM3U

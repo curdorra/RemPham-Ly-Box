@@ -275,3 +275,8 @@ export const snackItemInputSchema = z.object({
 export const snackItemUpdateSchema = z.object(snackItemFields).partial();
 
 export const uploadKindSchema = z.object({ kind: z.enum(["poster", "backdrop", "still"]) });
+
+/** Subtitle languages staff can add to a film. */
+export const SUBTITLE_LANGS = ["en", "lus"] as const;
+export const subtitleLangSchema = z.enum(SUBTITLE_LANGS);
+export type SubtitleLang = z.infer<typeof subtitleLangSchema>;

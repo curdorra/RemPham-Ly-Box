@@ -15,11 +15,11 @@ export const IMAGE_TYPES: Record<string, string> = {
   "image/avif": "avif",
 };
 
-const r2Ready = () =>
+export const r2Ready = () =>
   !!(config.R2_ACCOUNT_ID && config.R2_ACCESS_KEY_ID && config.R2_SECRET_ACCESS_KEY && config.R2_BUCKET && config.MEDIA_BASE_URL);
 
 let s3: S3Client | null = null;
-const client = () =>
+export const r2Client = () =>
   (s3 ??= new S3Client({
     region: "auto",
     endpoint: `https://${config.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -36,7 +36,7 @@ export async function saveImage(kind: string, body: Buffer, contentType: string)
   const key = `artwork/${kind}/${randomBytes(9).toString("base64url")}.${ext}`;
 
   if (r2Ready()) {
-    await client().send(
+    await r2Client().send(
       new PutObjectCommand({
         Bucket: config.R2_BUCKET,
         Key: key,

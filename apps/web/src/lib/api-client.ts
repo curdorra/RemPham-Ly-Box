@@ -40,3 +40,19 @@ export async function uploadImage(file: File, kind: "poster" | "backdrop" | "sti
   }
   return (data as { url: string }).url;
 }
+
+/** Sends a text file (e.g. subtitles) as the raw body of a PUT and returns the JSON reply. */
+export async function putText<T>(path: string, text: string): Promise<T> {
+  const res = await fetch(`/api${path}`, {
+    method: "PUT",
+    headers: { "content-type": "text/plain; charset=utf-8" },
+    body: text,
+    credentials: "same-origin",
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const err = (data as ApiError | null)?.error;
+    throw new ClientApiError(res.status, err?.code ?? "error", err?.message ?? "Upload failed");
+  }
+  return data as T;
+}

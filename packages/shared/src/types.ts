@@ -391,3 +391,10 @@ export interface AdminKitchen {
   active: boolean;
   items: AdminSnackItem[];
 }
+
+/** Subtitle renditions of a packaged film (`films/<slug>/` on R2). */
+export interface AdminSubtitles {
+  /** False until the film has been packaged by publish-film. */
+  hasVideo: boolean;
+  languages: { lang: string; name: string }[];
+}

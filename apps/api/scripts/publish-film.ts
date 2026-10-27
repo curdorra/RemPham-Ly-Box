@@ -20,7 +20,7 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { GetObjectCommand, PutBucketCorsCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { createRequire } from "node:module";
-import { listedSubtitles, parseSubArg, playlistDuration, startPtsFromProbe, subtitleFiles, withSubtitles } from "./lib/subtitles.js";
+import { listedSubtitles, parseSubArg, playlistDuration, startPtsFromProbe, subtitleFiles, withSubtitles } from "../src/lib/subtitles.js";
 
 const ffmpegPath: string | null = createRequire(import.meta.url)("ffmpeg-static");
 
@@ -53,7 +53,8 @@ if (process.argv[2] === "--setup-cors") {
   process.exit(0);
 }
 
-const type = (f: string) => (f.endsWith(".m3u8") ? "application/vnd.apple.mpegurl" : f.endsWith(".vtt") ? "text/vtt" : "video/mp2t");
+const type = (f: string) =>
+  f.endsWith(".m3u8") ? "application/vnd.apple.mpegurl" : f.endsWith(".vtt") ? "text/vtt" : f.endsWith(".json") ? "application/json" : "video/mp2t";
 const put = (key: string, body: Buffer | string, f = key) =>
   s3.send(
     new PutObjectCommand({
@@ -140,10 +141,13 @@ console.log("Converting (this takes a few minutes per film)…");
 const r = spawnSync(ffmpegPath!, args, { stdio: "inherit" });
 if (r.status !== 0) throw new Error("ffmpeg failed");
 
+const variantList = readFileSync(join(out, `v${ladder[0].name}.m3u8`), "utf8");
+const startPts = probeStartPts(join(out, `v${ladder[0].name}_0000.ts`));
+const durationSec = playlistDuration(variantList);
+// The admin panel reads this to add subtitles without ffmpeg.
+writeFileSync(join(out, "package.json"), JSON.stringify({ startPts, durationSec, variants: ladder.map((l) => l.name) }));
 if (subs.length) {
-  const variantList = readFileSync(join(out, `v${ladder[0].name}.m3u8`), "utf8");
-  const startPts = probeStartPts(join(out, `v${ladder[0].name}_0000.ts`));
-  for (const [f, body] of Object.entries(subtitleFiles(subs, playlistDuration(variantList), startPts))) writeFileSync(join(out, f), body);
+  for (const [f, body] of Object.entries(subtitleFiles(subs, durationSec, startPts))) writeFileSync(join(out, f), body);
   const masterPath = join(out, "master.m3u8");
   writeFileSync(masterPath, withSubtitles(readFileSync(masterPath, "utf8"), subs.map((s) => s.lang)));
 }
