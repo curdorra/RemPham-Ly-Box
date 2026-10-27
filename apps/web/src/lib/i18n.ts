@@ -31,7 +31,7 @@ const en = {
   boxOfficeTitle: "This week's box office", boxOfficeSub: "Tickets sold, updated live.", ticketsWord: "tickets",
   resultsFor: "Results for", didYouMean: "Did you mean", people: "People", nothingFound: "Nothing matched.",
   lightsDown: "The lights are going down…", enjoy: "Please enjoy the film", skipIntro: "Skip intro", nextEpisode: "Next episode",
-  liveNow: "Live · Opening night", back: "Back",
+  liveNow: "Live · Opening night", back: "Back", subtitles: "Subtitles", subsOff: "Off",
   yourTickets: "Your tickets", noTickets: "No tickets yet.", giftsToShare: "Tickets to gift", redeem: "Redeem",
   giftCode: "Got a gift code?", validFor: "Valid", screens: "Screens", paidL: "Paid", booking: "Booking", anyTime: "Any time",
   showAtCinema: "Show at the cinema & for snack pickup",
@@ -64,7 +64,7 @@ const lus: Record<Key, string> = {
   address: "Thlen na tur", deliverNow: "Theih chang berin", deliverAt: "Hun ruat", orderPlaced: "Order a lut ta.",
   boxOfficeTitle: "Kar khata box office", ticketsWord: "ticket",
   resultsFor: "Zawn chhuah", didYouMean: "I sawi duh chu", people: "Mi", nothingFound: "Engmah a awm lo.",
-  lightsDown: "Êng a thim ta…", enjoy: "Film nuam takin en rawh", back: "Kîr leh",
+  lightsDown: "Êng a thim ta…", enjoy: "Film nuam takin en rawh", back: "Kîr leh", subtitles: "Subtitle", subsOff: "Awm lo",
   where: "Khawiah", atHome: "In-ah, engtik pawh",
   yourTickets: "I ticket-te", noTickets: "Ticket i la nei lo.", giftsToShare: "Pek tur ticket", redeem: "Lak rawh", giftCode: "Gift code i nei em?",
 };

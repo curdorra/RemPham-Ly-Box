@@ -16,6 +16,11 @@ const HEARTBEAT_INTERVAL_MS = 30_000;
 const LIVE_DRIFT_SEC = 5;
 /** How long the "lights are going down" card stays before the film fades in. */
 const LIGHTS_MS = 2600;
+/** The viewer's subtitle language ("off" or a code like "en"), kept across films. */
+const SUBS_KEY = "rlb_subs";
+
+type SubTrack = { lang: string; label: string };
+const isSubTrack = (t: TextTrack) => t.kind === "subtitles" || t.kind === "captions";
 
 type State =
   | { kind: "loading" }
@@ -30,6 +35,8 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
   const [ended, setEnded] = useState(false);
   const [lights, setLights] = useState(true);
   const [now, setNow] = useState(0);
+  const [subTracks, setSubTracks] = useState<SubTrack[]>([]);
+  const [subLang, setSubLang] = useState("off");
   const router = useRouter();
   const t = useT();
 
@@ -112,6 +119,37 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
     }
     setState({ kind: "error", code: "unsupported", message: "This browser cannot play HLS video." });
   }, [info]);
+
+  // Subtitle languages arrive as text tracks from the playlist (hls.js and native HLS alike).
+  useEffect(() => {
+    const list = videoRef.current?.textTracks;
+    if (!list || !info) return;
+    try {
+      setSubLang(localStorage.getItem(SUBS_KEY) ?? "off");
+    } catch {}
+    const sync = () => setSubTracks([...list].filter(isSubTrack).map((t) => ({ lang: t.language, label: t.label || t.language })));
+    sync();
+    list.addEventListener("addtrack", sync);
+    list.addEventListener("removetrack", sync);
+    return () => {
+      list.removeEventListener("addtrack", sync);
+      list.removeEventListener("removetrack", sync);
+    };
+  }, [info]);
+
+  // Showing a track is all it takes: hls.js notices and loads that language.
+  useEffect(() => {
+    const list = videoRef.current?.textTracks;
+    if (!list) return;
+    for (const t of list) if (isSubTrack(t)) t.mode = t.language === subLang ? "showing" : "disabled";
+  }, [subLang, subTracks]);
+
+  const pickSubs = (lang: string) => {
+    setSubLang(lang);
+    try {
+      localStorage.setItem(SUBS_KEY, lang);
+    } catch {}
+  };
 
   // Where everyone else in the hall is right now.
   const livePosition = useCallback(
@@ -221,8 +259,19 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
         <button onClick={() => router.back()} className="btn btn-ghost btn-sm pointer-events-auto">
           ← {t("back")}
         </button>
-        <p className="headline truncate text-[22px]">{heading}</p>
-        {info?.live && <span className="chip chip-ox ml-auto"><span className="live-dot" />{t("liveNow")}</span>}
+        <p className="headline min-w-0 truncate text-[22px]">{heading}</p>
+        <div className="ml-auto flex items-center gap-3">
+          {info?.live && <span className="chip chip-ox"><span className="live-dot" />{t("liveNow")}</span>}
+          {subTracks.length > 0 && (
+            <div className="seg pointer-events-auto" role="group" aria-label={t("subtitles")}>
+              {[{ lang: "off", label: t("subsOff") }, ...subTracks].map((s) => (
+                <button key={s.lang} aria-pressed={subLang === s.lang} onClick={() => pickSubs(s.lang)}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Skip intro / next episode */}

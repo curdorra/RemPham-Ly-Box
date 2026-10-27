@@ -18,6 +18,9 @@
    npm run publish-film -w @ott/api -- --setup-cors https://<your-site>.vercel.app
    DATABASE_URL=<supabase url> npm run publish-film -w @ott/api -- ~/Downloads/film.mp4 <title-slug>
    ```
+   Subtitles (SRT or WebVTT) can go in at publish time with `--sub en=film.en.srt --sub lus=film.lus.srt`,
+   or be added to a film that's already up without converting it again:
+   `npm run publish-film -w @ott/api -- --subs <title-slug> en=film.en.srt`. Viewers choose them in the player.
    For artwork uploads from the staff screens, also set the same five `R2_*` / `MEDIA_BASE_URL` values on **Render**.
    Without them, uploading in production says so and staff can paste image URLs instead.
 6. Make yourself staff: `DATABASE_URL=<supabase url> npm run make-admin -w @ott/api -- you@email.com`.

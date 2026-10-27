@@ -132,7 +132,8 @@ npm test                   # resets + seeds the test DB, then runs API integrati
 - [ ] DRM (Widevine / FairPlay / PlayReady) and forensic watermarking
 - [ ] Tune recommendation weights on real data; A/B test rows
 - [x] Skip-intro / next-episode buttons
-- [ ] Subtitles / audio tracks UI, thumbnails on the scrubber
+- [x] Subtitles (English/Mizo WebVTT in the HLS package, picker in the player)
+- [ ] Audio-track picker, thumbnails on the scrubber (needs custom player controls)
 - [x] Profile PIN lock (4 digits; `PATCH /profiles/:id {pin, currentPin}`, `PUT /profiles/current {profileId, pin}`)
 - [ ] Offline downloads (needs native apps)
 - [ ] Mobile & TV clients
