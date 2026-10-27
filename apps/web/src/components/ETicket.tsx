@@ -54,7 +54,7 @@ export function ETicket({ ticket, labels, paidPaise, perfBg }: { ticket: Ticket;
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={ticket.title.backdropUrl} alt="" className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent" />
-        <b className="absolute bottom-3 left-[18px] font-serif text-[34px] leading-none font-normal text-white italic">{ticket.title.name}</b>
+        <b className="absolute bottom-3 left-[18px] display text-[30px] leading-none text-white">{ticket.title.name}</b>
         <span className="chip absolute top-3 right-3 bg-ox text-ink">{ticket.tier === "TOGETHER" ? labels.together : labels.standard}</span>
       </div>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 px-[18px] py-4">

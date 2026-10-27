@@ -15,6 +15,12 @@ export default defineConfig({
       RAZORPAY_KEY_SECRET: "",
       RAZORPAY_WEBHOOK_SECRET: "",
       CDN_SIGNING_KEY: "",
+      // Keep uploads on local disk even when .env has R2 set up.
+      R2_ACCOUNT_ID: "",
+      R2_ACCESS_KEY_ID: "",
+      R2_SECRET_ACCESS_KEY: "",
+      R2_BUCKET: "",
+      MEDIA_BASE_URL: "",
     },
   },
 });

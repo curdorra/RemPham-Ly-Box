@@ -37,7 +37,7 @@ export function SeatMap({ screening, signedIn }: { screening: ScreeningDetail; s
   return (
     <div className="panel flex flex-col p-7 max-sm:p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <b className="font-serif text-2xl font-medium italic">{t("pickSeat")}</b>
+        <b className="headline text-[22px]">{t("pickSeat")}</b>
         <span className="text-[13.5px] text-ink-3">
           {screening.capacity - screening.seatsTaken} / {screening.capacity} {t("seatsLeft")}
         </span>
@@ -73,7 +73,7 @@ export function SeatMap({ screening, signedIn }: { screening: ScreeningDetail; s
       </div>
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3.5 border-t border-[var(--line)] pt-5">
         <div>
-          <b className="font-serif text-xl font-medium italic">
+          <b className="text-lg font-semibold">
             {owned ? `${t("yourSeat")}: ${screening.mySeats.join(", ")}` : picked.length ? picked.join(", ") : t("tapSeat")}
           </b>
           <small className="block text-[13px] text-ink-3">{t("tapSeatSub")}</small>

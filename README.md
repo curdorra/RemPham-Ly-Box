@@ -44,6 +44,9 @@ Browser ──► Next.js (web :3000) ──/api/* rewrite──► Express API 
   genre rows ordered by the profile's taste. Thumbs down/up/love feed it.
 - **Our cinema**: RemPhamLy Cinema's showtimes (entered by staff) with per-day BookMyShow links —
   BookMyShow has no public API, so booking stays there.
+- **Staff screens** (`/admin`, ADMIN role): add and edit films and series (artwork upload, episodes, prices,
+  draft / scheduled / published), opening nights, kitchens and menus, plus showtimes, the snack queue and sales.
+  Scheduled titles are published by the API within a minute of their time (`lib/publishing.ts`).
 - **Snacks**: partner kitchens and menus; snack orders go to a staff queue (`/admin/snack-orders`) that
   moves them from PLACED → ACCEPTED → OUT_FOR_DELIVERY → DELIVERED.
 
@@ -112,16 +115,23 @@ npm test                   # resets + seeds the test DB, then runs API integrati
 | GET/PATCH | `/admin/snack-orders[/:id]` | admin | Kitchen queue |
 | GET | `/admin/sales?days=30` | admin | Tickets and gross per title |
 | PUT | `/me/progress`, GET `/me/continue-watching`, GET/PUT/DELETE `/me/list[/:titleId]` | user | Viewer state |
+| GET/POST/PATCH/DELETE | `/admin/titles[/:id]`, GET `/admin/genres` | admin | Films and series, drafts included; prices, publishing, scheduled release |
+| POST/PATCH/DELETE | `/admin/titles/:id/seasons`, `/admin/seasons/:id[/episodes]`, `/admin/episodes/:id` | admin | Seasons and episodes |
+| GET/POST/PATCH/DELETE | `/admin/screenings[/:id]` | admin | Opening nights (seat map locks once tickets exist) |
+| GET/POST/PATCH/DELETE | `/admin/kitchens[/:id][/items]`, `/admin/snack-items/:id` | admin | Partner kitchens and menus |
+| POST | `/admin/uploads?kind=poster\|backdrop\|still` (raw image body) | admin | Artwork upload → `{url}` (R2, or `apps/api/uploads` in dev) |
 
 ## Roadmap
 
-- [ ] Admin/CMS: titles, screenings, prices, kitchens; artwork upload, publish scheduling
+- [x] Admin/CMS at `/admin`: titles, episodes, screenings, prices, kitchens; artwork upload, publish scheduling
 - [ ] Watch-together sync for on-demand viewing (play/pause shared across a family's screens)
 - [ ] Reminder delivery (WhatsApp/SMS) and kitchen notifications for new snack orders
 - [ ] Ticket stubs loyalty (every 5th film free), filmmaker revenue dashboard, refunds
 - [ ] Ingest pipeline: upload → transcode to an HLS/CMAF ladder (e.g. AWS MediaConvert or Mux) → CDN
 - [ ] DRM (Widevine / FairPlay / PlayReady) and forensic watermarking
 - [ ] Tune recommendation weights on real data; A/B test rows
-- [ ] Subtitles / audio tracks UI, skip-intro button (markers exist), thumbnails on the scrubber
-- [ ] Profile PIN lock; offline downloads (needs native apps)
+- [x] Skip-intro / next-episode buttons
+- [ ] Subtitles / audio tracks UI, thumbnails on the scrubber
+- [x] Profile PIN lock (4 digits; `PATCH /profiles/:id {pin, currentPin}`, `PUT /profiles/current {profileId, pin}`)
+- [ ] Offline downloads (needs native apps)
 - [ ] Mobile & TV clients

@@ -35,7 +35,7 @@ export function Countdown({ to }: { to: string }) {
     <div className="flex gap-2.5" suppressHydrationWarning>
       {cells.map(([v, l]) => (
         <div key={l} className="flex-1 rounded-[10px] bg-[rgba(241,232,218,.04)] px-2 pt-3.5 pb-2.5 text-center shadow-[inset_0_0_0_1px_var(--line)]">
-          <b className="block font-serif text-[clamp(34px,4vw,54px)] leading-none font-normal [font-variant-numeric:lining-nums_tabular-nums]">{now ? v : "–"}</b>
+          <b className="display block text-[clamp(32px,3.6vw,48px)] leading-none [font-variant-numeric:lining-nums_tabular-nums]">{now ? v : "–"}</b>
           <small className="lbl text-[11px] text-gold">{l}</small>
         </div>
       ))}

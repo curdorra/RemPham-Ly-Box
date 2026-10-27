@@ -53,8 +53,8 @@ export default async function HomePage() {
             <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(11,7,7,.95)_20%,rgba(11,7,7,.4)),radial-gradient(ellipse_at_0%_100%,rgba(122,22,33,.45),transparent_60%)]" />
             <div className="relative p-8 max-sm:p-5">
               <span className="chip chip-ox"><span className="live-dot" />{formatShowtime(next.startsAt)}</span>
-              <h3 className="display mt-4 text-[clamp(52px,6.4vw,92px)]">{next.title.name}</h3>
-              <p className="mt-2 font-serif text-xl text-ink-2 italic">
+              <h3 className="display mt-4 text-[clamp(44px,5.4vw,80px)]">{next.title.name}</h3>
+              <p className="mt-2 text-lg text-ink-2">
                 {next.capacity - next.seatsTaken} / {next.capacity} {t("seatsLeft")}
               </p>
               <div className="mt-6 max-w-xl"><Countdown to={next.startsAt} /></div>
@@ -83,7 +83,7 @@ export default async function HomePage() {
                   {day.showtimes.length ? (
                     day.showtimes.map((s) => (
                       <li key={s.id} className="flex items-baseline justify-between gap-3">
-                        <span className="truncate font-serif text-xl italic">{s.filmName}</span>
+                        <span className="truncate text-[17px] font-semibold">{s.filmName}</span>
                         <span className="shrink-0 text-sm text-ink-2 [font-variant-numeric:lining-nums_tabular-nums]">{formatTime(s.startsAt)}</span>
                       </li>
                     ))

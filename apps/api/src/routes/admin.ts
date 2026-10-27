@@ -6,9 +6,12 @@ import { prisma } from "../lib/db.js";
 import { HttpError, notFound } from "../lib/errors.js";
 import { toSnackOrder } from "../lib/orders.js";
 import { requireAdmin } from "../middleware/auth.js";
+import { adminCatalogRouter } from "./admin-catalog.js";
+import { adminEventsRouter } from "./admin-events.js";
 
 export const adminRouter = Router();
 adminRouter.use(requireAdmin);
+adminRouter.use(adminCatalogRouter, adminEventsRouter);
 
 const listSchema = z.object({
   status: z.enum(["PLACED", "ACCEPTED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELED"]).optional(),

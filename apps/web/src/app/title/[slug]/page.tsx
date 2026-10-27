@@ -64,7 +64,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
               title.genres.map((g) => g.name).join(" · ")
             )}
           </div>
-          <h1 className="display mt-3 text-[clamp(54px,9vw,132px)]">{title.name}</h1>
+          <h1 className="display mt-3 text-[clamp(48px,8vw,116px)]">{title.name}</h1>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[15px] font-medium text-ink-2">
             {meta.map((m, k) => (
               <span key={k} className="flex items-center gap-4">
@@ -73,7 +73,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
               </span>
             ))}
           </div>
-          <p className="mt-4 max-w-2xl font-serif text-[21px] leading-[1.45] text-ink-2">{title.synopsis}</p>
+          <p className="mt-4 max-w-2xl text-[18px] leading-[1.6] text-ink-2">{title.synopsis}</p>
           <div className="mt-7">
             <Suspense>
               <TitleActions
@@ -95,7 +95,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
           {bigScreen.length > 0 && (
             <section className="panel p-6">
               <div className="lbl text-gold">{cinema!.cinema.name}</div>
-              <h2 className="mt-2 font-serif text-[32px] font-light italic">{t("cinemaTitle")}</h2>
+              <h2 className="headline mt-2 text-[26px]">{t("cinemaTitle")}</h2>
               <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                 {bigScreen.slice(0, 6).map((s) => (
                   <li key={s.id}>
@@ -113,14 +113,14 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
           {title.directors.length > 0 && (
             <div>
               <dt className="lbl text-[11px] text-ink-3">{t("directors")}</dt>
-              <dd className="mt-1 font-serif text-xl">
+              <dd className="mt-1 text-[17px] font-medium">
                 {title.directors.map((d) => <Link key={d} href={`/search?q=${encodeURIComponent(d)}`} className="hover:text-gold">{d}</Link>)}
               </dd>
             </div>
           )}
           <div>
             <dt className="lbl text-[11px] text-ink-3">{t("cast")}</dt>
-            <dd className="mt-1 flex flex-wrap gap-x-3 font-serif text-xl">
+            <dd className="mt-1 flex flex-wrap gap-x-3 text-[17px] font-medium">
               {title.cast.map((c) => <Link key={c} href={`/search?q=${encodeURIComponent(c)}`} className="hover:text-gold">{c}</Link>)}
             </dd>
           </div>
@@ -136,7 +136,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
 
       {similar.length > 0 && (
         <section className="mt-20">
-          <h2 className="gutter mb-4 font-serif text-[36px] font-light italic">{t("moreLikeThis")}</h2>
+          <h2 className="headline gutter mb-4 text-[28px]">{t("moreLikeThis")}</h2>
           <div className="gutter no-scrollbar flex gap-4 overflow-x-auto pb-2 [&>*]:w-[42vw] sm:[&>*]:w-[200px]">
             {similar.map((s) => <PosterCard key={s.id} title={s} />)}
           </div>

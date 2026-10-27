@@ -29,6 +29,13 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     });
     return;
   }
+  // Body-parser errors (oversized upload, malformed JSON) carry their own status.
+  if (typeof err?.status === "number" && err.status >= 400 && err.status < 500 && err.expose) {
+    res.status(err.status).json({
+      error: { code: err.type === "entity.too.large" ? "too_large" : "bad_request", message: err.type === "entity.too.large" ? "That file is too big" : "Invalid request body" },
+    });
+    return;
+  }
   console.error(err);
   res.status(500).json({ error: { code: "internal_error", message: "Something went wrong" } });
 };

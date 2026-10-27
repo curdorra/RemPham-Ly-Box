@@ -117,8 +117,14 @@ export const profileCreateSchema = z.object({
   kids: z.boolean().default(false),
   avatar: z.string().trim().min(1).max(30).default("oxblood"),
 });
-export const profileUpdateSchema = profileCreateSchema.partial();
-export const selectProfileSchema = z.object({ profileId: z.string().min(1) });
+const pinSchema = z.string().regex(/^\d{4}$/, "PIN must be 4 digits");
+export const profileUpdateSchema = profileCreateSchema.partial().extend({
+  /** Set a PIN, or `null` to remove it. */
+  pin: pinSchema.nullable().optional(),
+  /** Required to change or remove the PIN of a profile that already has one. */
+  currentPin: pinSchema.optional(),
+});
+export const selectProfileSchema = z.object({ profileId: z.string().min(1), pin: pinSchema.optional() });
 
 export const ratingSchema = z.object({ value: z.union([z.literal(-1), z.literal(1), z.literal(2)]) });
 
@@ -137,3 +143,135 @@ export const showtimeCreateSchema = z.object({
   startsAt: z.iso.datetime({ offset: true }),
 });
 export const showtimesCreateSchema = z.union([showtimeCreateSchema, z.array(showtimeCreateSchema).min(1).max(100)]);
+
+// ── Staff: catalog, opening nights, kitchens ────────────────────────────────
+
+/** "Ka Nu Leh Ka Pa" → "ka-nu-leh-ka-pa". Mizo diacritics (â, ṭ…) fold to plain letters. */
+export function slugify(text: string) {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+const slug = z.string().trim().min(1).max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers and dashes");
+/** Artwork: a full URL, or a path on our own site (dev uploads). */
+const imageUrl = z.string().trim().min(1).max(500).refine((u) => /^https?:\/\//.test(u) || u.startsWith("/"), "Enter an image URL");
+const words = (max: number) => z.array(z.string().trim().min(1).max(80)).max(max);
+const seconds = z.number().int().min(0).max(24 * 3600);
+export const maturitySchema = z.enum(["G", "PG", "PG13", "R", "NC17", "TVY", "TVPG", "TV14", "TVMA"]);
+
+// Each record has its fields without defaults (for PATCH, where a missing field
+// must stay untouched — zod's .partial() would still fill defaults in) and a
+// create schema that adds the defaults.
+
+const titleFields = {
+  slug,
+  type: z.enum(["MOVIE", "SERIES"]),
+  name: z.string().trim().min(1).max(120),
+  synopsis: z.string().trim().min(1).max(2000),
+  year: z.number().int().min(1900).max(2100),
+  maturity: maturitySchema,
+  posterUrl: imageUrl,
+  backdropUrl: imageUrl,
+  language: z.string().trim().min(1).max(40),
+  /** Genre names; new ones are created. */
+  genres: words(8),
+  cast: words(60),
+  directors: words(10),
+  tags: words(30),
+  altNames: words(10),
+  featured: z.boolean(),
+  published: z.boolean(),
+  /** Publish automatically at this time (only while unpublished). */
+  publishAt: z.iso.datetime({ offset: true }).nullish(),
+  durationSec: seconds.nullish(),
+  manifestUrl: z.url().max(500).nullish(),
+  trailerUrl: z.url().max(500).nullish(),
+  pricePaise: z.number().int().min(0).max(1_000_000),
+  rentalHours: z.number().int().min(1).max(24 * 30),
+  introStartSec: seconds.nullish(),
+  introEndSec: seconds.nullish(),
+  creditsStartSec: seconds.nullish(),
+};
+export const titleInputSchema = z.object({
+  ...titleFields,
+  language: titleFields.language.default("Mizo"),
+  genres: titleFields.genres.default([]),
+  cast: titleFields.cast.default([]),
+  directors: titleFields.directors.default([]),
+  tags: titleFields.tags.default([]),
+  altNames: titleFields.altNames.default([]),
+  featured: titleFields.featured.default(false),
+  published: titleFields.published.default(false),
+});
+export type TitleInput = z.input<typeof titleInputSchema>;
+export const titleUpdateSchema = z.object(titleFields).partial();
+
+export const seasonInputSchema = z.object({
+  number: z.number().int().min(1).max(99),
+  name: z.string().trim().min(1).max(80),
+});
+export const seasonUpdateSchema = seasonInputSchema.partial();
+
+const episodeFields = {
+  number: z.number().int().min(1).max(999),
+  name: z.string().trim().min(1).max(120),
+  synopsis: z.string().trim().max(1000),
+  durationSec: z.number().int().min(1).max(24 * 3600),
+  thumbnailUrl: imageUrl,
+  manifestUrl: z.url().max(500),
+  introStartSec: seconds.nullish(),
+  introEndSec: seconds.nullish(),
+  creditsStartSec: seconds.nullish(),
+};
+export const episodeInputSchema = z.object({ ...episodeFields, synopsis: episodeFields.synopsis.default("") });
+export type EpisodeInput = z.input<typeof episodeInputSchema>;
+export const episodeUpdateSchema = z.object(episodeFields).partial();
+
+const screeningFields = {
+  startsAt: z.iso.datetime({ offset: true }),
+  /** Null = use the film's price. */
+  pricePaise: z.number().int().min(0).max(1_000_000).nullish(),
+  rows: z.number().int().min(1).max(26),
+  seatsPerRow: z.number().int().min(1).max(99),
+  /** Draw an aisle after these seat numbers. */
+  aisleAfter: z.array(z.number().int().min(1).max(98)).max(6),
+};
+export const screeningInputSchema = z.object({
+  ...screeningFields,
+  titleId: z.string().min(1),
+  rows: screeningFields.rows.default(10),
+  seatsPerRow: screeningFields.seatsPerRow.default(14),
+  aisleAfter: screeningFields.aisleAfter.default([3, 11]),
+});
+export type ScreeningInput = z.input<typeof screeningInputSchema>;
+export const screeningUpdateSchema = z.object(screeningFields).partial();
+
+const kitchenFields = {
+  name: z.string().trim().min(1).max(80),
+  phone,
+  active: z.boolean(),
+};
+export const kitchenInputSchema = z.object({ ...kitchenFields, active: kitchenFields.active.default(true) });
+export const kitchenUpdateSchema = z.object(kitchenFields).partial();
+
+const snackItemFields = {
+  name: z.string().trim().min(1).max(80),
+  description: z.string().trim().max(300),
+  pricePaise: z.number().int().min(0).max(1_000_000),
+  available: z.boolean(),
+  sort: z.number().int().min(0).max(999),
+};
+export const snackItemInputSchema = z.object({
+  ...snackItemFields,
+  description: snackItemFields.description.default(""),
+  available: snackItemFields.available.default(true),
+  sort: snackItemFields.sort.default(0),
+});
+export const snackItemUpdateSchema = z.object(snackItemFields).partial();
+
+export const uploadKindSchema = z.object({ kind: z.enum(["poster", "backdrop", "still"]) });

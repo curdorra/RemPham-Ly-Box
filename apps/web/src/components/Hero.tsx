@@ -81,7 +81,7 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
             <span className="ml-2 border-l border-[var(--line-2)] pl-3.5 tracking-[.08em] text-ink-3 max-sm:ml-0 max-sm:basis-full max-sm:border-0 max-sm:pl-0">HD · 5.1</span>
           </div>
           {kicker && <div className="lbl mt-6 tracking-[.32em] text-ink-2">{kicker}</div>}
-          <h1 className="display mt-1.5 -ml-1 text-[clamp(56px,10.5vw,164px)] leading-[.86]">{name}</h1>
+          <h1 className="display mt-1.5 -ml-1 text-[clamp(48px,9vw,140px)] leading-[.88]">{name}</h1>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[15px] font-medium text-ink-2">
             {meta.map((m, k) => (
               <span key={k} className="flex items-center gap-4">
@@ -90,7 +90,7 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
               </span>
             ))}
           </div>
-          <p className="mt-3.5 line-clamp-3 max-w-[540px] font-serif text-[21px] leading-[1.45] text-ink-2 max-sm:text-[18px]">{title.synopsis}</p>
+          <p className="mt-3.5 line-clamp-3 max-w-[540px] text-[18px] leading-[1.6] text-ink-2 max-sm:text-[16px]">{title.synopsis}</p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             {slide.opening ? (
               <Link href={`/opening/${slide.opening.screeningId}`} className="btn btn-red">{t("prebook")} · {formatInr(title.pricePaise)}</Link>
@@ -132,7 +132,7 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
                 <img src={s.title.backdropUrl} alt="" className="h-full w-full object-cover" />
               </span>
               <span className="min-w-0">
-                <b className={`block truncate font-serif text-[21px] font-medium italic transition-colors ${k === i ? "text-ink" : "text-ink-3"}`}>
+                <b className={`block truncate text-[16px] font-semibold transition-colors ${k === i ? "text-ink" : "text-ink-3"}`}>
                   <i className="mr-0.5 text-base text-gold">{ROMAN[k]}.</i> {s.title.name}
                 </b>
                 <small className="text-[12.5px] tracking-[.06em] text-ink-3">

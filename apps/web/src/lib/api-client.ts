@@ -24,3 +24,19 @@ export async function api<T = void>(path: string, init: { method?: string; body?
   }
   return data as T;
 }
+
+/** Uploads artwork (staff only) and returns the URL to store. */
+export async function uploadImage(file: File, kind: "poster" | "backdrop" | "still"): Promise<string> {
+  const res = await fetch(`/api/admin/uploads?kind=${kind}`, {
+    method: "POST",
+    headers: { "content-type": file.type },
+    body: file,
+    credentials: "same-origin",
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const err = (data as ApiError | null)?.error;
+    throw new ClientApiError(res.status, err?.code ?? "error", err?.message ?? "Upload failed");
+  }
+  return (data as { url: string }).url;
+}

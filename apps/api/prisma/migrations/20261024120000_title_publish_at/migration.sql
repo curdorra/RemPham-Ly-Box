@@ -1,0 +1,1 @@
+ALTER TABLE "Title" ADD COLUMN "publishAt" TIMESTAMP(3);

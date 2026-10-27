@@ -48,7 +48,7 @@ export function CinemaDays({ schedule }: { schedule: CinemaSchedule }) {
                   <img src={first.posterUrl} alt="" className="aspect-[2/3] w-24 shrink-0 rounded object-cover shadow-[0_0_0_1px_var(--line)]" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-serif text-[28px] leading-tight italic">{first.filmName}</h3>
+                  <h3 className="headline text-[24px]">{first.filmName}</h3>
                   <p className="text-[13px] text-ink-3">{[first.language, first.format].filter(Boolean).join(" · ")}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {shows.map((s) => (

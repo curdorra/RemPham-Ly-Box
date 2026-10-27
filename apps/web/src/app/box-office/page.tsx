@@ -20,13 +20,13 @@ export default async function BoxOfficePage() {
           const [mark, cls] = TREND[e.trend];
           return (
             <Link key={e.title.id} href={`/title/${e.title.slug}`} className="grid grid-cols-[40px_64px_minmax(0,1.2fr)_1.4fr_110px_56px] items-center gap-4.5 border-[var(--line)] py-4 hover:bg-[var(--gold-soft)] max-md:grid-cols-[30px_1fr_90px] [&+&]:border-t">
-              <span className={`text-center font-serif text-[38px] italic ${e.rank === 1 ? "text-gold" : "text-ink-3"}`}>{e.rank}</span>
+              <span className={`display text-center text-[34px] tabular-nums ${e.rank === 1 ? "text-gold" : "text-ink-3"}`}>{e.rank}</span>
               <span className="aspect-[16/10] w-16 overflow-hidden rounded max-md:hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={e.title.backdropUrl} alt="" className="h-full w-full object-cover" />
               </span>
               <span className="min-w-0">
-                <b className="block truncate font-serif text-[22px] font-medium italic">{e.title.name}</b>
+                <b className="block truncate text-[18px] font-semibold">{e.title.name}</b>
                 <small className="text-[13px] text-ink-3">{e.title.genres.map((g) => g.name).join(" · ")}</small>
               </span>
               <span className="h-1.5 overflow-hidden rounded bg-white/5 max-md:hidden">

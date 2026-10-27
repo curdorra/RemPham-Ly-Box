@@ -62,6 +62,29 @@ describe("profiles", () => {
     expect(slugs(list.body)).toEqual(["big-buck-bunny"]);
   });
 
+  it("guards a profile with a PIN", async () => {
+    const { agent, me } = await signUp();
+    const dad: Profile = (await agent.post("/profiles").send({ name: "Dad" }).expect(201)).body;
+    expect(dad.locked).toBe(false);
+    await agent.patch(`/profiles/${dad.id}`).send({ pin: "12" }).expect(400);
+    const locked: Profile = (await agent.patch(`/profiles/${dad.id}`).send({ pin: "1234" }).expect(200)).body;
+    expect(locked.locked).toBe(true);
+
+    const noPin = await agent.put("/profiles/current").send({ profileId: dad.id });
+    expect(noPin.status).toBe(403);
+    expect(noPin.body.error.code).toBe("wrong_pin");
+    await agent.put("/profiles/current").send({ profileId: dad.id, pin: "0000" }).expect(403);
+    // A header alone can't get around the lock.
+    expect((await agent.get("/auth/me").set("x-profile-id", dad.id).expect(200)).body.profile.id).toBe(me.profile.id);
+    await agent.put("/profiles/current").send({ profileId: dad.id, pin: "1234" }).expect(200);
+    expect((await agent.get("/auth/me").expect(200)).body.profile.id).toBe(dad.id);
+
+    // Changing or removing the PIN takes the old one.
+    await agent.patch(`/profiles/${dad.id}`).send({ pin: null }).expect(403);
+    await agent.patch(`/profiles/${dad.id}`).send({ pin: null, currentPin: "1234" }).expect(200);
+    await agent.put("/profiles/current").send({ profileId: dad.id }).expect(200);
+  });
+
   it("can't use or delete someone else's profile, nor the last one", async () => {
     const a = await signUp();
     const b = await signUp();

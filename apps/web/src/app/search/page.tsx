@@ -38,7 +38,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       <form action="/search" className="flex max-w-2xl gap-2">
         {sp.genre && <input type="hidden" name="genre" value={sp.genre} />}
         {sp.type && <input type="hidden" name="type" value={sp.type} />}
-        <input name="q" defaultValue={sp.q} placeholder={t("searchPlaceholder")} className="field h-14 font-serif text-2xl italic" autoFocus={!sp.q} />
+        <input name="q" defaultValue={sp.q} placeholder={t("searchPlaceholder")} className="field h-14 text-xl" autoFocus={!sp.q} />
         <button className="btn btn-red h-14">{t("search")}</button>
       </form>
 
@@ -54,11 +54,11 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         ))}
       </div>
 
-      {sp.q && <h1 className="font-serif text-[36px] font-light italic">{t("resultsFor")} “{sp.q}”</h1>}
+      {sp.q && <h1 className="headline text-[28px]">{t("resultsFor")} “{sp.q}”</h1>}
       {found?.didYouMean && (
         <p className="text-lg">
           {t("didYouMean")}{" "}
-          <Link href={`/search?${new URLSearchParams({ q: found.didYouMean })}`} className="font-serif text-2xl text-gold italic hover:underline">{found.didYouMean}</Link>?
+          <Link href={`/search?${new URLSearchParams({ q: found.didYouMean })}`} className="text-xl font-semibold text-gold hover:underline">{found.didYouMean}</Link>?
         </p>
       )}
       {!!found?.people.length && (
@@ -66,7 +66,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <span className="lbl self-center text-ink-3">{t("people")}</span>
           {found.people.map((p) => (
             <Link key={`${p.role}:${p.name}`} href={`/search?${new URLSearchParams({ q: p.name })}`} className="panel px-4 py-2.5 hover:bg-[var(--gold-soft)]">
-              <b className="font-serif text-lg italic">{p.name}</b>
+              <b className="font-semibold">{p.name}</b>
               <small className="ml-2 text-ink-3">{p.role} · {p.titles.map((x) => x.name).join(", ")}</small>
             </Link>
           ))}

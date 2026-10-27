@@ -94,6 +94,8 @@ export interface Profile {
   name: string;
   kids: boolean;
   avatar: string;
+  /** Switching to this profile needs its PIN. */
+  locked: boolean;
 }
 
 export interface Me {
@@ -295,4 +297,97 @@ export interface BoxOffice {
 
 export interface ApiError {
   error: { code: string; message: string; details?: unknown };
+}
+
+// ── Staff ───────────────────────────────────────────────────────────────────
+
+/** A row in the staff film list. */
+export interface AdminTitleRow {
+  id: string;
+  slug: string;
+  type: TitleType;
+  name: string;
+  year: number;
+  posterUrl: string;
+  pricePaise: number;
+  published: boolean;
+  publishAt: string | null;
+  featured: boolean;
+  /** Movie has a manifest, or a series has at least one episode. */
+  hasVideo: boolean;
+  ticketsSold: number;
+  updatedAt: string;
+}
+
+export interface AdminEpisode extends Episode {
+  manifestUrl: string;
+  introStartSec: number | null;
+  introEndSec: number | null;
+  creditsStartSec: number | null;
+}
+
+/** Everything staff can edit on a title. */
+export interface AdminTitle {
+  id: string;
+  slug: string;
+  type: TitleType;
+  name: string;
+  synopsis: string;
+  year: number;
+  maturity: Maturity;
+  posterUrl: string;
+  backdropUrl: string;
+  language: string;
+  genres: string[];
+  cast: string[];
+  directors: string[];
+  tags: string[];
+  altNames: string[];
+  featured: boolean;
+  published: boolean;
+  publishAt: string | null;
+  durationSec: number | null;
+  manifestUrl: string | null;
+  trailerUrl: string | null;
+  pricePaise: number;
+  rentalHours: number;
+  introStartSec: number | null;
+  introEndSec: number | null;
+  creditsStartSec: number | null;
+  seasons: { id: string; number: number; name: string; episodes: AdminEpisode[] }[];
+  ticketsSold: number;
+}
+
+export interface AdminScreening {
+  id: string;
+  title: { id: string; name: string; posterUrl: string; pricePaise: number; published: boolean };
+  startsAt: string;
+  /** Override, or null when it uses the film's price. */
+  pricePaise: number | null;
+  rows: number;
+  seatsPerRow: number;
+  aisleAfter: number[];
+  capacity: number;
+  seatsSold: number;
+  /** Any tickets at all (paid or held): the seat map can no longer change. */
+  hasTickets: boolean;
+  state: "UPCOMING" | "LIVE" | "ENDED";
+}
+
+export interface AdminSnackItem {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  pricePaise: number;
+  available: boolean;
+  sort: number;
+}
+
+export interface AdminKitchen {
+  id: string;
+  name: string;
+  phone: string;
+  active: boolean;
+  items: AdminSnackItem[];
 }

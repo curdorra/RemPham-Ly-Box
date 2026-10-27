@@ -84,6 +84,8 @@ model Profile {
   kids      Boolean         @default(false)
   /// Avatar colour key, chosen by the client.
   avatar    String          @default("oxblood")
+  /// bcrypt hash of the 4-digit PIN that guards this profile, if any.
+  pinHash   String?
   createdAt DateTime        @default(now())
   progress  WatchProgress[]
   myList    MyListItem[]
@@ -132,6 +134,8 @@ model Title {
   altNames        String[]        @default([])
   featured        Boolean         @default(false)
   published       Boolean         @default(true)
+  /// Staff can schedule a draft to go live; the API publishes it at this time.
+  publishAt       DateTime?
   /// Movies only: runtime and HLS master manifest.
   durationSec     Int?
   manifestUrl     String?

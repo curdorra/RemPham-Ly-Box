@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* RemPham Ly Box — "Theatre, modernised": oxblood, antique gold, Cormorant titles,
-   Inter Tight for UI text. Mirrors mockup/theatre-modern.html. */
+/* RemPham Ly Box — "Theatre, modernised": oxblood, antique gold. Condensed Archivo for
+   marquee-style titles, Inter Tight for UI text; Cormorant only on the wordmark and Top 10 numerals. */
 
 @theme {
   --color-bg: #0b0707;
@@ -16,6 +16,7 @@
   --color-gold: #b8975a;
   --color-paper: #efe4cf;
   --font-serif: var(--font-cormorant), Garamond, Georgia, serif;
+  --font-display: var(--font-archivo), var(--font-inter-tight), system-ui, sans-serif;
   --font-sans: var(--font-inter-tight), system-ui, sans-serif;
 }
 
@@ -44,7 +45,8 @@ body {
   /* type */
   .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; }
   .serif { font-family: var(--font-serif); }
-  .display { font-family: var(--font-serif); font-weight: 300; font-style: italic; letter-spacing: -0.02em; line-height: 0.9; }
+  .display { font-family: var(--font-display); font-weight: 700; font-stretch: 78%; letter-spacing: -0.025em; line-height: 0.92; }
+  .headline { font-family: var(--font-display); font-weight: 600; font-stretch: 88%; letter-spacing: -0.015em; line-height: 1.1; }
   .eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-gold); }
   .rule-after::after { content: ""; width: 40px; height: 1px; background: var(--line-2); }
   .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #e0443f; box-shadow: 0 0 10px #e0443f; animation: pulse 1.6s ease-in-out infinite; flex: none; }
@@ -75,8 +77,8 @@ body {
   .seg button[aria-pressed="true"] { background: var(--color-ink); color: #1a0b0b; }
 
   /* section heading */
-  .sec-head h2 { font-family: var(--font-serif); font-weight: 300; font-style: italic; font-size: clamp(40px, 5.4vw, 72px); line-height: 1; letter-spacing: -0.02em; margin-top: 10px; }
-  .sec-head p { font-family: var(--font-serif); font-size: 19px; color: var(--color-ink-2); max-width: 440px; }
+  .sec-head h2 { font-family: var(--font-display); font-weight: 700; font-stretch: 78%; font-size: clamp(36px, 4.6vw, 60px); line-height: 0.95; letter-spacing: -0.025em; margin-top: 10px; }
+  .sec-head p { font-size: 16px; line-height: 1.55; color: var(--color-ink-2); max-width: 440px; }
 
   /* poster card */
   .poster { position: relative; aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; background: var(--color-s2); box-shadow: 0 0 0 1px var(--line), 0 30px 60px -30px #000; }

@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import express from "express";
 import helmet from "helmet";
 import { errorHandler, notFoundHandler } from "./lib/errors.js";
+import { LOCAL_UPLOAD_DIR } from "./lib/media.js";
 import { optionalAuth } from "./middleware/auth.js";
 import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
@@ -46,6 +47,8 @@ export function createApp() {
   app.use("/snacks", snacksRouter);
   app.use("/box-office", boxOfficeRouter);
   app.use("/admin", adminRouter);
+  // Artwork uploaded in development without R2 (see lib/media.ts).
+  app.use("/uploads", express.static(LOCAL_UPLOAD_DIR, { immutable: true, maxAge: "1y", fallthrough: true }));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

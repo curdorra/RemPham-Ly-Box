@@ -221,7 +221,7 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
         <button onClick={() => router.back()} className="btn btn-ghost btn-sm pointer-events-auto">
           ← {t("back")}
         </button>
-        <p className="truncate font-serif text-2xl italic">{heading}</p>
+        <p className="headline truncate text-[22px]">{heading}</p>
         {info?.live && <span className="chip chip-ox ml-auto"><span className="live-dot" />{t("liveNow")}</span>}
       </div>
 
@@ -251,7 +251,7 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
       >
         <div>
           <div className="lbl text-gold">{t("enjoy")}</div>
-          <p className="mt-3 font-serif text-[clamp(36px,6vw,72px)] font-light text-ink-2 italic">{t("lightsDown")}</p>
+          <p className="display mt-3 text-[clamp(32px,5vw,60px)] text-ink-2">{t("lightsDown")}</p>
           <div className="mx-auto mt-5 h-0.5 w-40 overflow-hidden bg-white/10">
             <i className="block h-full w-0 bg-gold" style={{ animation: `fill ${LIGHTS_MS}ms linear forwards` }} />
           </div>
@@ -260,7 +260,7 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
 
       {state.kind === "error" && (
         <div className="relative z-30 max-w-md space-y-4 p-6 text-center">
-          <p className="font-serif text-3xl italic">{state.message}</p>
+          <p className="headline text-[26px]">{state.message}</p>
           {state.code === "premiere_not_started" && state.details?.startsAt && (
             <p className="text-ink-2">Doors open at {new Date(state.details.startsAt).toLocaleString()}.</p>
           )}

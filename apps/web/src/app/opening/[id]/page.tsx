@@ -35,8 +35,8 @@ export default async function ScreeningPage({ params }: { params: Promise<{ id: 
               <span className="live-dot" />
               {screening.state === "LIVE" ? "Live now" : `${t("openingNight")} · ${formatShowtime(screening.startsAt)}`}
             </span>
-            <h1 className="display mt-4 text-[clamp(56px,6.4vw,92px)]">{title.name}</h1>
-            <p className="mt-2.5 font-serif text-[21px] text-ink-2 italic">{formatShowtime(screening.startsAt)}</p>
+            <h1 className="display mt-4 text-[clamp(48px,5.6vw,80px)]">{title.name}</h1>
+            <p className="mt-2.5 text-lg text-ink-2">{formatShowtime(screening.startsAt)}</p>
             <p className="mt-3 max-w-lg text-ink-2">{title.synopsis}</p>
             {screening.state === "UPCOMING" && <div className="mt-6"><Countdown to={screening.startsAt} /></div>}
           </div>

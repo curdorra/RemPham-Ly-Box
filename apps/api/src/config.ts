@@ -16,6 +16,12 @@ const envSchema = z.object({
   ORDER_HOLD_MIN: z.coerce.number().int().min(1).max(60).default(15),
   CDN_SIGNING_KEY: z.string().optional().default(""),
   PLAYBACK_TTL_SEC: z.coerce.number().int().min(60).default(4 * 60 * 60),
+  /** Cloudflare R2 for artwork uploads (same bucket as publish-film). Without it, dev saves to ./uploads. */
+  R2_ACCOUNT_ID: z.string().optional().default(""),
+  R2_ACCESS_KEY_ID: z.string().optional().default(""),
+  R2_SECRET_ACCESS_KEY: z.string().optional().default(""),
+  R2_BUCKET: z.string().optional().default(""),
+  MEDIA_BASE_URL: z.string().optional().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);

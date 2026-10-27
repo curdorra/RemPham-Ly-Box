@@ -12,7 +12,7 @@ export const MAX_PROFILES = 5;
 export const KIDS_MATURITIES: Maturity[] = ["G", "PG", "TVY", "TVPG"];
 
 export function toProfile(p: Profile): ProfileDto {
-  return { id: p.id, name: p.name, kids: p.kids, avatar: p.avatar };
+  return { id: p.id, name: p.name, kids: p.kids, avatar: p.avatar, locked: p.pinHash !== null };
 }
 
 export function setProfileCookie(res: Response, profileId: string) {
@@ -33,10 +33,14 @@ export function setProfileCookie(res: Response, profileId: string) {
 export async function currentProfile(req: Request): Promise<Profile> {
   if (!req.userId) throw new HttpError(401, "unauthorized", "Sign in to continue");
   if (req.profile) return req.profile;
-  const wanted = req.header("x-profile-id") ?? req.cookies?.[PROFILE_COOKIE];
-  let profile =
+  const header = req.header("x-profile-id");
+  const wanted = header ?? req.cookies?.[PROFILE_COOKIE];
+  let profile: Profile | null | undefined =
     (typeof wanted === "string" && (await prisma.profile.findFirst({ where: { id: wanted, userId: req.userId } }))) ||
-    (await prisma.profile.findFirst({ where: { userId: req.userId }, orderBy: { createdAt: "asc" } }));
+    undefined;
+  // The cookie is only set after the PIN was entered; a bare header can't unlock a PIN-protected profile.
+  if (profile?.pinHash && header) profile = undefined;
+  profile ??= await prisma.profile.findFirst({ where: { userId: req.userId }, orderBy: { createdAt: "asc" } });
   if (!profile) {
     const user = await prisma.user.findUniqueOrThrow({ where: { id: req.userId } });
     profile = await prisma.profile.create({ data: { userId: user.id, name: user.name } });

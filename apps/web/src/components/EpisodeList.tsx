@@ -13,7 +13,7 @@ export function EpisodeList({ titleId, seasons }: { titleId: string; seasons: Se
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-serif text-[34px] font-light italic">Episodes</h2>
+        <h2 className="headline text-[26px]">Episodes</h2>
         {seasons.length > 1 && (
           <select
             value={season.id}
@@ -32,12 +32,12 @@ export function EpisodeList({ titleId, seasons }: { titleId: string; seasons: Se
         {season.episodes.map((ep) => (
           <li key={ep.id}>
             <Link href={`/watch/${titleId}?episode=${ep.id}`} className="flex gap-4 rounded-lg py-4 hover:bg-[var(--gold-soft)]">
-              <span className="w-8 shrink-0 pt-5 text-center font-serif text-3xl text-gold italic">{ep.number}</span>
+              <span className="w-8 shrink-0 pt-5 display text-center text-3xl text-gold">{ep.number}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={ep.thumbnailUrl} alt="" loading="lazy" className="aspect-video w-40 shrink-0 rounded object-cover" />
               <div className="min-w-0 flex-1">
                 <div className="flex justify-between gap-2">
-                  <p className="font-serif text-xl italic">{ep.name}</p>
+                  <p className="text-[17px] font-semibold">{ep.name}</p>
                   <span className="shrink-0 text-sm text-ink-3">{formatDuration(ep.durationSec)}</span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-ink-3">{ep.synopsis}</p>

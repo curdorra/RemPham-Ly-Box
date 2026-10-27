@@ -78,7 +78,7 @@ function SearchBox({ onDone }: { onDone?: () => void }) {
                 onClick={() => go(s.kind === "title" && s.slug ? `/title/${s.slug}` : `/search?q=${encodeURIComponent(s.text)}`)}
                 className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-[var(--gold-soft)]"
               >
-                <span className={s.kind === "title" ? "font-serif text-lg italic" : ""}>{s.text}</span>
+                <span className={s.kind === "title" ? "font-semibold" : ""}>{s.text}</span>
                 <span className="lbl text-[10px] text-ink-3">{s.kind}</span>
               </button>
             </li>

@@ -21,7 +21,7 @@ export default async function OpeningPage() {
             </div>
             <div className="min-w-0">
               <span className="chip chip-ox">{s.state === "LIVE" ? <><span className="live-dot" />Live now</> : formatShowtime(s.startsAt)}</span>
-              <h3 className="display mt-3 text-[48px]">{s.title.name}</h3>
+              <h3 className="display mt-3 text-[40px]">{s.title.name}</h3>
               <p className="mt-2 text-sm text-ink-3">{s.capacity - s.seatsTaken} / {s.capacity} {t("seatsLeft")}</p>
               <span className="mt-4 inline-block text-sm text-gold group-hover:underline">{t("pickSeat")} →</span>
             </div>

@@ -27,3 +27,15 @@ services:
         sync: false
       - key: RAZORPAY_WEBHOOK_SECRET
         sync: false
+      # Cloudflare R2: artwork uploads from the staff screens. Without these, uploads
+      # are refused in production (paste an image URL instead).
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        value: remphamly-media
+      - key: MEDIA_BASE_URL      # the bucket's public URL (r2.dev now; custom domain before launch)
+        sync: false

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter_Tight } from "next/font/google";
+import { Archivo, Cormorant_Garamond, Inter_Tight } from "next/font/google";
 import { Header } from "@/components/Header";
 import { LangProvider } from "@/components/LangProvider";
 import { Logo } from "@/components/Logo";
@@ -8,12 +8,9 @@ import { getLang } from "@/lib/lang-server";
 import { translator } from "@/lib/i18n";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin", "latin-ext"],
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
-});
+// Serif is now reserved for the wordmark and the Top 10 numerals; Archivo (condensed via wdth) carries headlines.
+const cormorant = Cormorant_Garamond({ subsets: ["latin", "latin-ext"], weight: ["300", "500"], variable: "--font-cormorant" });
+const archivo = Archivo({ subsets: ["latin", "latin-ext"], axes: ["wdth"], variable: "--font-archivo" });
 const interTight = Inter_Tight({ subsets: ["latin", "latin-ext"], variable: "--font-inter-tight" });
 
 export const metadata: Metadata = {
@@ -27,7 +24,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const usable = tickets.filter((x) => !x.isGiftForOthers && x.state !== "EXPIRED").length;
   const t = translator(lang);
   return (
-    <html lang={lang === "lus" ? "lus" : "en"} className={`${cormorant.variable} ${interTight.variable}`}>
+    <html lang={lang === "lus" ? "lus" : "en"} className={`${cormorant.variable} ${archivo.variable} ${interTight.variable}`}>
       <body className="min-h-screen">
         <LangProvider lang={lang}>
           <div className="grain" aria-hidden="true" />

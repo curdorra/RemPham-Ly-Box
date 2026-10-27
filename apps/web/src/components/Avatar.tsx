@@ -12,7 +12,7 @@ export const AVATARS: Record<string, string> = {
 export function Avatar({ profile, size = 40 }: { profile: Pick<Profile, "name" | "avatar" | "kids">; size?: number }) {
   return (
     <span
-      className="relative inline-grid shrink-0 place-items-center rounded-lg font-serif font-medium text-ink shadow-[inset_0_0_0_1px_rgba(241,232,218,.2)]"
+      className="relative inline-grid shrink-0 place-items-center rounded-lg font-display font-bold text-ink shadow-[inset_0_0_0_1px_rgba(241,232,218,.2)]"
       style={{ width: size, height: size, background: AVATARS[profile.avatar] ?? AVATARS.oxblood, fontSize: size * 0.48 }}
     >
       {profile.name.slice(0, 1).toUpperCase()}

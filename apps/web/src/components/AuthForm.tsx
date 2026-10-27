@@ -40,7 +40,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   return (
     <form onSubmit={onSubmit} className="panel w-full max-w-sm space-y-4 p-8 backdrop-blur">
       <div className="eyebrow">RemPham Ly Box</div>
-      <h1 className="display text-[52px]">{mode === "login" ? t("signIn") : t("signUp")}</h1>
+      <h1 className="display text-[44px]">{mode === "login" ? t("signIn") : t("signUp")}</h1>
       {mode === "signup" && <input name="name" placeholder="Name" required autoComplete="name" className={input} />}
       <input name="email" type="email" placeholder="Email" required autoComplete="email" className={input} />
       <input

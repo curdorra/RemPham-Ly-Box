@@ -63,7 +63,7 @@ export function SnackShop({ items }: { items: SnackItem[] }) {
             <span className="mb-2.5 grid h-[42px] w-[42px] place-items-center rounded-[10px] bg-[var(--gold-soft)] text-gold">
               <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">{ICON[iconFor(i.slug)]}</svg>
             </span>
-            <b className="font-serif text-[21px] font-medium italic">{i.name}</b>
+            <b className="text-[17px] font-semibold">{i.name}</b>
             <small className="text-[13.5px] text-ink-3">{i.description}</small>
             <div className="mt-auto flex items-center justify-between pt-3">
               <span className="font-semibold">{formatInr(i.pricePaise)}</span>
@@ -83,7 +83,7 @@ export function SnackShop({ items }: { items: SnackItem[] }) {
         ))}
       </div>
       <aside className="panel sticky top-24 p-6">
-        <h4 className="font-serif text-[26px] font-medium italic">{t("yourOrder")}</h4>
+        <h4 className="headline text-[22px]">{t("yourOrder")}</h4>
         <ul className="mt-3 min-h-11 space-y-1.5 text-[14.5px] text-ink-2">
           {lines.length ? (
             lines.map((i) => (

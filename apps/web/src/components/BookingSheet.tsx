@@ -116,7 +116,7 @@ export function BookingSheet({ title, screening, open, onClose }: BookingProps) 
           <button onClick={close} aria-label={t("close")} className="absolute top-3.5 right-3.5 grid h-[38px] w-[38px] place-items-center rounded-full bg-black/60 backdrop-blur">✕</button>
           <div className="absolute right-[22px] bottom-3.5 left-[22px]">
             <div className="lbl text-[11px] text-gold">{screening ? `${t("openingNight")} · ${formatShowtime(screening.startsAt)}` : title.genres[0]?.name}</div>
-            <h3 className="display text-[48px] leading-none">{title.name}</h3>
+            <h3 className="display text-[40px] leading-none">{title.name}</h3>
           </div>
         </div>
 
@@ -154,14 +154,14 @@ export function BookingSheet({ title, screening, open, onClose }: BookingProps) 
                 }`}
               >
                 <span>
-                  <b className="font-serif text-[22px] font-medium italic">{id === "STANDARD" ? t("standard") : t("together")}</b>
+                  <b className="text-lg font-semibold">{id === "STANDARD" ? t("standard") : t("together")}</b>
                   <span className="mt-1 block text-[13.5px] leading-relaxed text-ink-3">
                     {id === "STANDARD" ? t("standardPerks") : `${TICKET_TIERS.TOGETHER.screens} ${t("togetherPerks")}`}
                     <br />
                     {title.rentalHours + TICKET_TIERS[id].extraHours} {t("hoursToFinish")}
                   </span>
                 </span>
-                <span className="font-serif text-[28px]">{formatInr(base + TICKET_TIERS[id].addPaise)}</span>
+                <span className="display text-[26px] tabular-nums">{formatInr(base + TICKET_TIERS[id].addPaise)}</span>
               </button>
             ))}
 
@@ -207,7 +207,7 @@ export function BookingSheet({ title, screening, open, onClose }: BookingProps) 
 
             <div className="flex justify-between px-1 pt-1.5 text-[19px] font-semibold">
               <span>{t("total")}</span>
-              <span className="font-serif text-[28px] font-normal">{formatInr(total)}</span>
+              <span className="display text-[26px] tabular-nums">{formatInr(total)}</span>
             </div>
             <button
               className="btn btn-red h-14 w-full text-base"

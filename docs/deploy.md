@@ -18,6 +18,8 @@
    npm run publish-film -w @ott/api -- --setup-cors https://<your-site>.vercel.app
    DATABASE_URL=<supabase url> npm run publish-film -w @ott/api -- ~/Downloads/film.mp4 <title-slug>
    ```
+   For artwork uploads from the staff screens, also set the same five `R2_*` / `MEDIA_BASE_URL` values on **Render**.
+   Without them, uploading in production says so and staff can paste image URLs instead.
 6. Make yourself staff: `DATABASE_URL=<supabase url> npm run make-admin -w @ott/api -- you@email.com`.
 
 Film links are public to anyone who finds them. Before paid releases, add expiring links (the API already signs manifest URLs when `CDN_SIGNING_KEY` is set; R2 needs a small Worker to check them).

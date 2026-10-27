@@ -30,7 +30,7 @@ export function SnackQueue({ orders }: { orders: SnackOrder[] }) {
         <div key={o.id} className="panel flex flex-wrap items-start justify-between gap-4 p-4">
           <div>
             <div className="lbl text-gold">{o.status.replaceAll("_", " ")} · {o.when === "SCHEDULED" && o.scheduledFor ? formatShowtime(o.scheduledFor) : "ASAP"}</div>
-            <p className="mt-1 font-serif text-xl italic">{o.lines.map((l) => `${l.qty} × ${l.name}`).join(", ")}</p>
+            <p className="mt-1 text-[17px] font-semibold">{o.lines.map((l) => `${l.qty} × ${l.name}`).join(", ")}</p>
             <p className="text-sm text-ink-2">{o.address} · <a href={`tel:${o.phone}`} className="text-gold">{o.phone}</a> · {formatInr(o.totalPaise)}</p>
             {o.note && <p className="text-sm text-ink-3">“{o.note}”</p>}
           </div>
