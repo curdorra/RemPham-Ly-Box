@@ -1,0 +1,16 @@
+# Gatekeeper for films on R2. Runs only on /films/*, so artwork on the same
+# domain keeps coming straight from the R2 custom domain.
+#   npx wrangler@4 secret put SIGNING_KEY   # same value as the API's CDN_SIGNING_KEY
+#   npm run deploy -w @ott/media-worker
+name = "remphamly-media"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = false
+routes = [{ pattern = "media.remphamly.com/films/*", zone_name = "remphamly.com" }]
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "remphamly-media"
+
+[vars]
+ALLOWED_ORIGINS = "https://remphamly.com,https://www.remphamly.com,https://remphamly-box.vercel.app,http://localhost:3000"

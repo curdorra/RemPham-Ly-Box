@@ -22,4 +22,21 @@
    Without them, uploading in production says so and staff can paste image URLs instead.
 6. Make yourself staff: `DATABASE_URL=<supabase url> npm run make-admin -w @ott/api -- you@email.com`.
 
-Film links are public to anyone who finds them. Before paid releases, add expiring links (the API already signs manifest URLs when `CDN_SIGNING_KEY` is set; R2 needs a small Worker to check them).
+## Locking films (before paid releases)
+Until this is done, anyone with a film's R2 link can watch it. `apps/media-worker` is a Cloudflare Worker on
+`media.remphamly.com/films/*` that only serves a film with the expiring link from `POST /playback`. Artwork stays public.
+
+Do these steps in order. If the Worker goes live before the API has the key, every film returns 403.
+1. Make a key: `openssl rand -base64 32`.
+2. **Render**: set `CDN_SIGNING_KEY` to that key and let the API redeploy. Films still play, with `?exp=…&sig=…` added.
+3. **Worker** (log in once with `npx wrangler@4 login`):
+   ```
+   cd apps/media-worker
+   npx wrangler@4 secret put SIGNING_KEY      # paste the same key
+   npm run deploy
+   ```
+4. **R2**: turn off the bucket's public `r2.dev` URL. It bypasses the Worker.
+5. Check: open a film on the site (it plays), then open its `master.m3u8` link without `?exp=…&sig=…` (it should say 403).
+
+To change the key, repeat steps 2 and 3. Links already handed out stop working, and viewers reopen the film to get a new one.
+Add a new web origin (for example a new preview domain) to `ALLOWED_ORIGINS` in `apps/media-worker/wrangler.toml`.

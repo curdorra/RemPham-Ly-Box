@@ -39,3 +39,6 @@ services:
         value: remphamly-media
       - key: MEDIA_BASE_URL      # the bucket's public URL (r2.dev now; custom domain before launch)
         sync: false
+      # Signs film links. Must match the media Worker's SIGNING_KEY secret (apps/media-worker).
+      - key: CDN_SIGNING_KEY
+        sync: false

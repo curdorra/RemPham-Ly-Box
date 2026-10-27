@@ -8,7 +8,7 @@ describe("signManifestUrl", () => {
     expect(url).toBe("https://cdn.example.com/v/abc/master.m3u8");
   });
 
-  it("appends a verifiable HMAC signature when a key is set", async () => {
+  it("signs the manifest folder so the token covers its segments", async () => {
     vi.resetModules();
     vi.stubEnv("CDN_SIGNING_KEY", "k3y");
     const { signManifestUrl } = await import("../src/lib/playback.js");
@@ -18,7 +18,7 @@ describe("signManifestUrl", () => {
     const parsed = new URL(url);
     const exp = parsed.searchParams.get("exp")!;
     expect(Number(exp)).toBe(Math.floor(expiresAt.getTime() / 1000));
-    const expected = createHmac("sha256", "k3y").update(`/v/abc/master.m3u8:${exp}`).digest("base64url");
+    const expected = createHmac("sha256", "k3y").update(`/v/abc/:${exp}`).digest("base64url");
     expect(parsed.searchParams.get("sig")).toBe(expected);
     vi.unstubAllEnvs();
   });

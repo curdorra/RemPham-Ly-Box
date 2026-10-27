@@ -10,6 +10,7 @@ office chart. HLS streaming, accounts, continue watching, My List, Razorpay.
 apps/
   api/        Express 5 + Prisma (PostgreSQL) — auth, catalog, tickets, screenings, snacks, payments
   web/        Next.js (App Router) + Tailwind + hls.js — the viewer site
+  media-worker/  Cloudflare Worker on media.remphamly.com/films/* — checks signed film links
 packages/
   shared/     Zod schemas and TypeScript types shared by api and web
 ```
