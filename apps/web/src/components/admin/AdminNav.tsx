@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/admin/titles", label: "Films & series" },
   { href: "/admin/screenings", label: "Opening nights" },
   { href: "/admin/snacks", label: "Kitchens & snacks" },
+  { href: "/admin/stats", label: "Statistics" },
 ];
 
 export function AdminNav() {
