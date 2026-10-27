@@ -31,22 +31,23 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     const next = new URLSearchParams(Object.entries({ ...sp, ...patch }).filter(([, v]) => v) as [string, string][]);
     return `/search?${next}`;
   };
-  const chip = (active: boolean) => `chip h-9 px-3.5 ${active ? "bg-ink text-bg shadow-none" : "hover:text-ink"}`;
+  const chip = (active: boolean) => `inline-flex h-10 items-center rounded-full px-4 text-sm font-medium transition-colors ${active ? "bg-ink text-[#20272a]" : "bg-[rgba(243,244,242,.09)] hover:bg-[rgba(243,244,242,.16)]"}`;
 
   return (
-    <div className="gutter space-y-7 pt-36">
-      <form action="/search" className="flex max-w-2xl gap-2">
+    <div className="gutter space-y-6 pt-32">
+      <h1 className="display text-[clamp(32px,3.6vw,44px)]">{t("search")}</h1>
+      <form action="/search" className="flex gap-2">
         {sp.genre && <input type="hidden" name="genre" value={sp.genre} />}
         {sp.type && <input type="hidden" name="type" value={sp.type} />}
-        <input name="q" defaultValue={sp.q} placeholder={t("searchPlaceholder")} className="field h-14 text-xl" autoFocus={!sp.q} />
-        <button className="btn btn-red h-14">{t("search")}</button>
+        <input name="q" defaultValue={sp.q} placeholder={t("searchPlaceholder")} className="h-[52px] w-full rounded-[14px] bg-[rgba(243,244,242,.09)] px-5 text-lg outline-none backdrop-blur-xl placeholder:text-ink-3 focus:bg-[rgba(243,244,242,.14)]" autoFocus={!sp.q} />
+        <button className="btn btn-red h-[52px]">{t("search")}</button>
       </form>
 
       <div className="flex flex-wrap gap-2">
         <Link href={href({ type: undefined })} className={chip(!sp.type)}>All</Link>
         <Link href={href({ type: "MOVIE" })} className={chip(sp.type === "MOVIE")}>Films</Link>
         <Link href={href({ type: "SERIES" })} className={chip(sp.type === "SERIES")}>Series</Link>
-        <span className="mx-1 border-l border-[var(--line)]" />
+        <span className="mx-1 self-stretch border-l border-[var(--line)]" />
         {genres.map((g) => (
           <Link key={g.slug} href={href({ genre: sp.genre === g.slug ? undefined : g.slug })} className={chip(sp.genre === g.slug)}>
             {g.name}
@@ -54,7 +55,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         ))}
       </div>
 
-      {sp.q && <h1 className="headline text-[28px]">{t("resultsFor")} “{sp.q}”</h1>}
+      {sp.q && <h2 className="font-serif text-[26px] font-medium">{t("resultsFor")} “{sp.q}”</h2>}
       {found?.didYouMean && (
         <p className="text-lg">
           {t("didYouMean")}{" "}
@@ -65,7 +66,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <div className="flex flex-wrap gap-3">
           <span className="lbl self-center text-ink-3">{t("people")}</span>
           {found.people.map((p) => (
-            <Link key={`${p.role}:${p.name}`} href={`/search?${new URLSearchParams({ q: p.name })}`} className="panel px-4 py-2.5 hover:bg-[var(--gold-soft)]">
+            <Link key={`${p.role}:${p.name}`} href={`/search?${new URLSearchParams({ q: p.name })}`} className="panel rounded-full px-5 py-2.5 hover:bg-[var(--gold-soft)]">
               <b className="font-semibold">{p.name}</b>
               <small className="ml-2 text-ink-3">{p.role} · {p.titles.map((x) => x.name).join(", ")}</small>
             </Link>

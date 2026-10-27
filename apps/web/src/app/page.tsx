@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ScreeningSummary } from "@ott/shared";
 import { Countdown } from "@/components/Countdown";
 import { Hero, type HeroSlide } from "@/components/Hero";
+import { Reel } from "@/components/Reel";
 import { Row } from "@/components/Row";
 import { SectionHead } from "@/components/SectionHead";
 import { getCinema, getHome, getMe, getScreenings, getTickets } from "@/lib/api-server";
@@ -38,22 +39,20 @@ export default async function HomePage() {
     <>
       <Hero slides={slides} />
 
-      <div id="rows" className="relative z-10 -mt-4 scroll-mt-20">
-        {feed.rows.map((row) => (
-          <Row key={row.id} row={row} />
-        ))}
+      <div id="rows" className="relative z-10 scroll-mt-20">
+        {feed.rows.map((row, k) => (k === 0 && !row.ranked && row.titles.length >= 3 ? <Reel key={row.id} row={row} /> : <Row key={row.id} row={row} />))}
       </div>
 
       {next && (
         <section id="opening-night" className="gutter mt-28 scroll-mt-24">
           <SectionHead label={t("openingNight")} title={t("everyoneTogether")} sub={t("openingSub")} live />
-          <Link href={`/opening/${next.id}`} className="group relative mt-10 grid overflow-hidden rounded-[14px] shadow-[0_0_0_1px_var(--line-2)] lg:grid-cols-[1fr_auto]">
+          <Link href={`/opening/${next.id}`} className="group relative mt-10 grid overflow-hidden shadow-[0_0_0_1px_var(--line-2)] lg:grid-cols-[1fr_auto]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={next.title.backdropUrl} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-50" />
-            <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(11,7,7,.95)_20%,rgba(11,7,7,.4)),radial-gradient(ellipse_at_0%_100%,rgba(122,22,33,.45),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(40,48,52,.95)_20%,rgba(40,48,52,.4))]" />
             <div className="relative p-8 max-sm:p-5">
               <span className="chip chip-ox"><span className="live-dot" />{formatShowtime(next.startsAt)}</span>
-              <h3 className="display mt-4 text-[clamp(44px,5.4vw,80px)]">{next.title.name}</h3>
+              <h3 className="display mt-4 text-[clamp(36px,4.6vw,64px)]">{next.title.name}</h3>
               <p className="mt-2 text-lg text-ink-2">
                 {next.capacity - next.seatsTaken} / {next.capacity} {t("seatsLeft")}
               </p>
@@ -61,9 +60,9 @@ export default async function HomePage() {
               <span className="btn btn-red mt-6">{t("pickSeat")} →</span>
             </div>
             <div className="relative hidden p-8 lg:block">
-              <div className="w-44 rounded bg-[#1a100b] p-1.5 shadow-[0_0_0_1px_var(--line-2),0_24px_50px_-16px_#000]">
+              <div className="w-44 bg-paper p-1.5 shadow-[0_20px_40px_rgba(0,0,0,.35)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={next.title.posterUrl} alt="" className="aspect-[2/3] w-full rounded-sm object-cover" />
+                <img src={next.title.posterUrl} alt="" className="aspect-[2/3] w-full object-cover" />
               </div>
             </div>
           </Link>

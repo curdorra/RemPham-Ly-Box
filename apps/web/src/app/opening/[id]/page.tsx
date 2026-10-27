@@ -25,8 +25,8 @@ export default async function ScreeningPage({ params }: { params: Promise<{ id: 
         <div className="relative flex min-h-[520px] flex-col justify-end overflow-hidden rounded-[14px] p-8 shadow-[0_0_0_1px_var(--line-2)] max-sm:p-5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={title.backdropUrl} alt="" className="absolute inset-[-10%] h-[120%] w-[120%] object-cover blur-[34px] brightness-[.55] saturate-[1.2]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(11,7,7,.96)_25%,rgba(11,7,7,.4)_75%,rgba(11,7,7,.15)),radial-gradient(ellipse_at_0%_100%,rgba(122,22,33,.45),transparent_60%)]" />
-          <figure className="absolute top-7 right-7 w-32 rounded max-sm:hidden bg-[#1a100b] p-1.5 shadow-[0_0_0_1px_var(--line-2),0_24px_50px_-16px_#000]">
+          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(40,48,52,.96)_25%,rgba(40,48,52,.4)_75%,rgba(40,48,52,.15))]" />
+          <figure className="absolute top-7 right-7 w-32 max-sm:hidden bg-paper p-1.5 shadow-[0_0_0_1px_var(--line-2),0_24px_50px_-16px_#000]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={title.posterUrl} alt="" className="aspect-[2/3] w-full rounded-sm object-cover" />
           </figure>

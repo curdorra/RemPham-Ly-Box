@@ -150,7 +150,7 @@ export function BookingSheet({ title, screening, open, onClose }: BookingProps) 
                 aria-checked={tier === id}
                 onClick={() => setTier(id)}
                 className={`grid w-full grid-cols-[1fr_auto] gap-3 rounded-[10px] p-4 text-left transition ${
-                  tier === id ? "bg-[rgba(122,22,33,.22)] shadow-[inset_0_0_0_1px_var(--color-gold)]" : "bg-[rgba(241,232,218,.03)] shadow-[inset_0_0_0_1px_var(--line)]"
+                  tier === id ? "bg-[rgba(243,244,242,.12)] shadow-[inset_0_0_0_1px_var(--color-gold)]" : "bg-[rgba(243,244,242,.04)] shadow-[inset_0_0_0_1px_var(--line)]"
                 }`}
               >
                 <span>
@@ -166,7 +166,7 @@ export function BookingSheet({ title, screening, open, onClose }: BookingProps) 
             ))}
 
             {comboItems.length > 0 && (
-              <div className="rounded-[10px] bg-[rgba(241,232,218,.03)] px-4 py-3 shadow-[inset_0_0_0_1px_var(--line)]">
+              <div className="rounded-[10px] bg-[rgba(243,244,242,.04)] px-4 py-3 shadow-[inset_0_0_0_1px_var(--line)]">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[15px]">
                     {t("combo")}
@@ -192,7 +192,7 @@ export function BookingSheet({ title, screening, open, onClose }: BookingProps) 
             )}
 
             {!screening?.seats.length && (
-              <div className="flex items-center justify-between rounded-[10px] bg-[rgba(241,232,218,.03)] py-3 pr-3 pl-4 shadow-[inset_0_0_0_1px_var(--line)]">
+              <div className="flex items-center justify-between rounded-[10px] bg-[rgba(243,244,242,.04)] py-3 pr-3 pl-4 shadow-[inset_0_0_0_1px_var(--line)]">
                 <span className="text-[15px]">
                   {t("tickets")}
                   <small className="block text-[12.5px] text-ink-3">{t("extrasGift")}</small>

@@ -50,9 +50,8 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
     <div>
       <section className="relative flex min-h-[78svh] items-end overflow-hidden pt-[120px] pb-12">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={title.backdropUrl} alt="" className="kenburns absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-[#5b0f18] opacity-[.34] mix-blend-color" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(11,7,7,.92),rgba(11,7,7,.45)_45%,transparent_75%),linear-gradient(to_top,var(--color-bg),rgba(11,7,7,.5)_35%,transparent_60%)] max-lg:bg-[linear-gradient(to_top,var(--color-bg)_10%,rgba(11,7,7,.8)_55%,rgba(11,7,7,.2))]" />
+        <img src={title.backdropUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(40,48,52,.94)_0%,rgba(40,48,52,.7)_45%,rgba(40,48,52,.3)_100%),linear-gradient(0deg,#2f373a_0%,transparent_30%)] max-lg:bg-[linear-gradient(0deg,#2f373a_10%,rgba(40,48,52,.85)_55%,rgba(40,48,52,.3))]" />
         <div className="gutter relative max-w-4xl">
           <div className="eyebrow">
             {opening ? (
@@ -64,7 +63,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
               title.genres.map((g) => g.name).join(" · ")
             )}
           </div>
-          <h1 className="display mt-3 text-[clamp(48px,8vw,116px)]">{title.name}</h1>
+          <h1 className="display mt-4 text-[clamp(34px,5.4vw,64px)]">{title.name}</h1>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[15px] font-medium text-ink-2">
             {meta.map((m, k) => (
               <span key={k} className="flex items-center gap-4">
@@ -73,7 +72,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
               </span>
             ))}
           </div>
-          <p className="mt-4 max-w-2xl text-[18px] leading-[1.6] text-ink-2">{title.synopsis}</p>
+          <p className="mt-5 max-w-[540px] font-serif text-[18px] leading-[1.6]">{title.synopsis}</p>
           <div className="mt-7">
             <Suspense>
               <TitleActions
@@ -95,11 +94,11 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
           {bigScreen.length > 0 && (
             <section className="panel p-6">
               <div className="lbl text-gold">{cinema!.cinema.name}</div>
-              <h2 className="headline mt-2 text-[26px]">{t("cinemaTitle")}</h2>
+              <h2 className="headline mt-2 text-[24px]">{t("cinemaTitle")}</h2>
               <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                 {bigScreen.slice(0, 6).map((s) => (
                   <li key={s.id}>
-                    <a href={s.bookingUrl} target="_blank" rel="noopener" className="flex items-center justify-between rounded-lg px-3 py-2.5 shadow-[inset_0_0_0_1px_var(--line)] hover:bg-[var(--gold-soft)]">
+                    <a href={s.bookingUrl} target="_blank" rel="noopener" className="flex items-center justify-between px-3 py-2.5 shadow-[inset_0_0_0_1px_var(--line)] hover:bg-[var(--gold-soft)]">
                       <span>{new Date(s.startsAt).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short" })}</span>
                       <span className="[font-variant-numeric:lining-nums_tabular-nums] text-ink-2">{formatTime(s.startsAt)} ↗</span>
                     </a>
@@ -112,20 +111,20 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
         <dl className="space-y-5 text-[15px]">
           {title.directors.length > 0 && (
             <div>
-              <dt className="lbl text-[11px] text-ink-3">{t("directors")}</dt>
+              <dt className="lbl text-[10px] text-ink-2">{t("directors")}</dt>
               <dd className="mt-1 text-[17px] font-medium">
                 {title.directors.map((d) => <Link key={d} href={`/search?q=${encodeURIComponent(d)}`} className="hover:text-gold">{d}</Link>)}
               </dd>
             </div>
           )}
           <div>
-            <dt className="lbl text-[11px] text-ink-3">{t("cast")}</dt>
+            <dt className="lbl text-[10px] text-ink-2">{t("cast")}</dt>
             <dd className="mt-1 flex flex-wrap gap-x-3 text-[17px] font-medium">
               {title.cast.map((c) => <Link key={c} href={`/search?q=${encodeURIComponent(c)}`} className="hover:text-gold">{c}</Link>)}
             </dd>
           </div>
           <div>
-            <dt className="lbl text-[11px] text-ink-3">Genres</dt>
+            <dt className="lbl text-[10px] text-ink-2">Genres</dt>
             <dd className="mt-2 flex flex-wrap gap-2">
               {title.genres.map((g) => <Link key={g.slug} href={`/search?genre=${g.slug}`} className="chip hover:text-ink">{g.name}</Link>)}
               {title.tags.map((tag) => <Link key={tag} href={`/search?q=${encodeURIComponent(tag)}`} className="chip hover:text-ink">{tag}</Link>)}
@@ -136,7 +135,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
 
       {similar.length > 0 && (
         <section className="mt-20">
-          <h2 className="headline gutter mb-4 text-[28px]">{t("moreLikeThis")}</h2>
+          <h2 className="headline gutter mb-5 text-[28px]">{t("moreLikeThis")}</h2>
           <div className="gutter no-scrollbar flex gap-4 overflow-x-auto pb-2 [&>*]:w-[42vw] sm:[&>*]:w-[200px]">
             {similar.map((s) => <PosterCard key={s.id} title={s} />)}
           </div>

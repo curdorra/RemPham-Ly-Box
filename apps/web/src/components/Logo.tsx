@@ -1,15 +1,11 @@
 import Link from "next/link";
 
-export function Logo({ tagline }: { tagline: string }) {
+/** Wide Archivo wordmark with the outlined BOX chip. */
+export function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-3 font-serif" aria-label="RemPham Ly Box home">
-      <i className="h-[9px] w-[9px] rotate-45 rounded-[1px] bg-gold" />
-      <span className="flex flex-col leading-none">
-        <span className="text-[15px] font-medium tracking-[0.08em] uppercase whitespace-nowrap sm:text-[21px] sm:tracking-[0.14em]">
-          RemPham Ly Box
-        </span>
-        <small className="mt-[5px] font-sans text-[9.5px] font-semibold tracking-[0.32em] text-gold uppercase">{tagline}</small>
-      </span>
+    <Link href="/" className="flex items-center gap-2.5 whitespace-nowrap" aria-label="RemPham'Ly Box home">
+      <span className="font-wide text-[14px] font-extrabold tracking-[.02em] uppercase [font-stretch:125%] sm:text-[16px]">RemPham&apos;Ly</span>
+      <span className="font-wide border-[1.5px] border-current px-[5px] py-[3px] text-[8px] leading-none font-bold tracking-[.12em] uppercase [font-stretch:125%] sm:text-[10px]">Box</span>
     </Link>
   );
 }

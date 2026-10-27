@@ -36,33 +36,34 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     }
   }
 
-  const input = "field";
+  const label = "block text-[10px] font-semibold tracking-[.16em] text-[#5a6468] uppercase";
+  const tab = (on: boolean) => `font-cond border-b-2 pb-2 text-[15px] tracking-[.2em] uppercase ${on ? "border-[#1f2629]" : "border-transparent text-[#8a949c]"}`;
   return (
-    <form onSubmit={onSubmit} className="panel w-full max-w-sm space-y-4 p-8 backdrop-blur">
-      <div className="eyebrow">RemPham Ly Box</div>
-      <h1 className="display text-[44px]">{mode === "login" ? t("signIn") : t("signUp")}</h1>
-      {mode === "signup" && <input name="name" placeholder="Name" required autoComplete="name" className={input} />}
-      <input name="email" type="email" placeholder="Email" required autoComplete="email" className={input} />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        required
-        minLength={mode === "signup" ? 8 : undefined}
-        autoComplete={mode === "login" ? "current-password" : "new-password"}
-        className={input}
-      />
-      {error && <p className="text-sm text-[#ff8a93]">{error}</p>}
-      <button disabled={busy} className="btn btn-red w-full">
-        {mode === "login" ? t("signIn") : t("signUp")}
+    <form onSubmit={onSubmit} className="paper-form w-full max-w-[420px] space-y-6 bg-paper p-8 text-[#1f2629] shadow-[0_30px_60px_rgba(0,0,0,.35)] sm:p-11">
+      <div className="flex gap-7">
+        <Link href="/login" className={tab(mode === "login")}>{t("signIn")}</Link>
+        <Link href="/signup" className={tab(mode === "signup")}>{t("signUp")}</Link>
+      </div>
+      <h1 className="font-serif text-[30px] leading-tight font-medium">{mode === "login" ? "Welcome back" : "Make an account"}</h1>
+      {mode === "signup" && (
+        <label className={label}>Name<input name="name" required autoComplete="name" className="field mt-1" /></label>
+      )}
+      <label className={label}>Email<input name="email" type="email" required autoComplete="email" className="field mt-1" /></label>
+      <label className={label}>
+        Password
+        <input
+          name="password"
+          type="password"
+          required
+          minLength={mode === "signup" ? 8 : undefined}
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
+          className="field mt-1"
+        />
+      </label>
+      {error && <p className="text-[12px] text-[#b3362f]">{error}</p>}
+      <button disabled={busy} className="btn w-full bg-[#1f2629] text-paper hover:bg-[#333d41]">
+        {mode === "login" ? t("signIn") : "Create account"}
       </button>
-      <p className="text-sm text-ink-3">
-        {mode === "login" ? (
-          <>New here? <Link href="/signup" className="text-gold hover:underline">Create an account</Link></>
-        ) : (
-          <>Already a member? <Link href="/login" className="text-gold hover:underline">Sign in</Link></>
-        )}
-      </p>
     </form>
   );
 }

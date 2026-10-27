@@ -42,7 +42,7 @@ export function SeatMap({ screening, signedIn }: { screening: ScreeningDetail; s
           {screening.capacity - screening.seatsTaken} / {screening.capacity} {t("seatsLeft")}
         </span>
       </div>
-      <div className="mx-auto mt-6 h-6 w-[78%] rounded-t-[50%] border-t-[3px] border-gold shadow-[0_-12px_30px_-12px_rgba(184,151,90,.7)]" />
+      <div className="mx-auto mt-6 h-6 w-[78%] rounded-t-[50%] border-t-[3px] border-gold shadow-[0_-12px_30px_-12px_rgba(243,244,242,.6)]" />
       <div className="lbl text-center text-[11px] tracking-[.3em] text-gold">{t("screen")}</div>
       <div className="mx-auto mt-5 grid w-full max-w-[620px] gap-[6px]">
         {rows.map((r) => (

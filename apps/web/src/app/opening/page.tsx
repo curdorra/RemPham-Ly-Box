@@ -15,7 +15,7 @@ export default async function OpeningPage() {
       <div className="mt-10 grid gap-5 md:grid-cols-2">
         {screenings.map((s) => (
           <Link key={s.id} href={`/opening/${s.id}`} className="group panel relative flex gap-5 overflow-hidden p-5">
-            <div className="w-28 shrink-0 rounded bg-[#1a100b] p-1 shadow-[0_0_0_1px_var(--line-2)]">
+            <div className="w-28 shrink-0 bg-paper p-1 shadow-[0_0_0_1px_var(--line-2)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={s.title.posterUrl} alt="" className="aspect-[2/3] w-full rounded-sm object-cover" />
             </div>

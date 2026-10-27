@@ -76,31 +76,32 @@ export function ProfilePicker({ profiles, currentId, next }: { profiles: Profile
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-      <h1 className="display text-[clamp(52px,7vw,96px)]">{t("whosWatching")}</h1>
-      <div className="mt-12 flex flex-wrap justify-center gap-8">
+      <h1 className="display text-[clamp(36px,4.4vw,52px)]">{t("whosWatching")}</h1>
+      <div className="mt-12 flex flex-wrap justify-center gap-7">
         {profiles.map((p) => (
-          <div key={p.id} className="group flex w-32 flex-col items-center gap-3">
+          <div key={p.id} className="group flex w-[150px] flex-col items-center gap-4">
             <button
               onClick={() => (editing ? undefined : choose(p))}
-              className={`rounded-xl transition ${p.id === currentId ? "ring-2 ring-gold ring-offset-4 ring-offset-bg" : "opacity-80 group-hover:opacity-100"}`}
+              className="relative rounded-[6px] outline-[3px] outline-offset-4 outline-transparent transition-[outline-color] duration-200 hover:outline-ink focus-visible:outline-ink"
             >
-              <Avatar profile={p} size={120} />
+              <Avatar profile={p} size={150} />
+              {p.locked && <span className="absolute right-2 bottom-2 bg-[rgba(31,38,41,.7)] px-1.5 py-0.5 text-[10px] font-semibold">PIN</span>}
             </button>
-            <span className="text-lg font-semibold">{p.locked && "🔒 "}{p.name}</span>
+            <span className={`text-base font-medium transition-opacity group-hover:opacity-100 ${p.id === currentId ? "opacity-100" : "opacity-60"}`}>{p.name}</span>
             {editing && (
               <button onClick={() => { setError(null); setPin(""); setPinOf(p); }} className="text-xs text-gold hover:underline">
                 {p.locked ? "Remove PIN" : "Set PIN"}
               </button>
             )}
             {editing && profiles.length > 1 && (
-              <button onClick={() => remove(p.id)} className="text-xs text-[#ff8a93] hover:underline">Remove</button>
+              <button onClick={() => remove(p.id)} className="text-xs text-[#f0a09a] hover:underline">Remove</button>
             )}
           </div>
         ))}
         {profiles.length < 5 && !adding && (
-          <button onClick={() => setAdding(true)} className="flex w-32 flex-col items-center gap-3 text-ink-3 hover:text-ink">
-            <span className="grid h-[120px] w-[120px] place-items-center rounded-lg text-5xl font-light shadow-[inset_0_0_0_1px_var(--line-2)]">+</span>
-            <span className="text-lg font-semibold">{t("addProfile")}</span>
+          <button onClick={() => setAdding(true)} className="flex w-[150px] flex-col items-center gap-4 text-ink/60 hover:text-ink">
+            <span className="font-cond grid h-[150px] w-[150px] place-items-center rounded-[6px] border-[1.5px] border-dashed border-ink/45 text-[56px] font-light">+</span>
+            <span className="text-base font-medium">{t("addProfile")}</span>
           </button>
         )}
       </div>
@@ -147,8 +148,8 @@ export function ProfilePicker({ profiles, currentId, next }: { profiles: Profile
           </div>
         </div>
       )}
-      {error && <p className="mt-4 text-sm text-[#ff8a93]">{error}</p>}
-      <button onClick={() => setEditing((e) => !e)} className="btn btn-ghost btn-sm mt-12">{editing ? "Done" : t("manageProfiles")}</button>
+      {error && <p className="mt-4 text-sm text-[#f0a09a]">{error}</p>}
+      <button onClick={() => setEditing((e) => !e)} className="btn btn-ghost mt-14">{editing ? "Done" : t("manageProfiles")}</button>
     </div>
   );
 }

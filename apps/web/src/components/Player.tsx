@@ -255,11 +255,11 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
         />
       )}
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-4 bg-gradient-to-b from-black/80 to-transparent p-4 sm:px-8">
-        <button onClick={() => router.back()} className="btn btn-ghost btn-sm pointer-events-auto">
-          ← {t("back")}
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-4 bg-gradient-to-b from-[rgba(20,25,27,.75)] to-transparent p-4 sm:px-8">
+        <button onClick={() => router.back()} className="icon-btn btn-ghost pointer-events-auto h-10 w-10 text-xl" aria-label={t("back")}>
+          ‹
         </button>
-        <p className="headline min-w-0 truncate text-[22px]">{heading}</p>
+        <p className="min-w-0 truncate font-serif text-[20px]">{heading}</p>
         <div className="ml-auto flex items-center gap-3">
           {info?.live && <span className="chip chip-ox"><span className="live-dot" />{t("liveNow")}</span>}
           {subTracks.length > 0 && (

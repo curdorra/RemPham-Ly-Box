@@ -62,21 +62,21 @@ function SearchBox({ onDone }: { onDone?: () => void }) {
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder={t("searchPlaceholder")}
         aria-label={t("search")}
-        className="field h-10 w-full pl-10 text-sm lg:w-64"
+        className="h-10 w-full rounded-full bg-[var(--gold-soft)] pl-10 pr-4 text-sm outline-none placeholder:text-ink-3 focus:bg-[rgba(243,244,242,.16)] lg:w-60"
       />
       <svg className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-ink-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="11" cy="11" r="6.5" />
         <path d="M20 20l-4-4" />
       </svg>
       {open && items.length > 0 && (
-        <ul className="panel absolute top-12 right-0 left-0 z-50 overflow-hidden p-1 shadow-2xl lg:w-80">
+        <ul className="panel absolute top-12 right-0 left-0 z-50 overflow-hidden bg-[rgba(31,38,41,.92)] p-1 shadow-2xl lg:w-80">
           {items.map((s) => (
             <li key={`${s.kind}:${s.text}`}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => go(s.kind === "title" && s.slug ? `/title/${s.slug}` : `/search?q=${encodeURIComponent(s.text)}`)}
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-[var(--gold-soft)]"
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-[var(--gold-soft)]"
               >
                 <span className={s.kind === "title" ? "font-semibold" : ""}>{s.text}</span>
                 <span className="lbl text-[10px] text-ink-3">{s.kind}</span>
@@ -131,18 +131,18 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
   return (
     <header
       className={`fixed inset-x-0 top-0 z-40 transition-[background,box-shadow] duration-300 ${
-        solid ? "bg-[rgba(11,7,7,.8)] shadow-[0_1px_0_var(--line)] backdrop-blur-xl" : "bg-gradient-to-b from-black/60 to-transparent"
+        solid ? "bg-[rgba(40,47,51,.86)] shadow-[0_1px_0_var(--line)] backdrop-blur-xl" : "bg-gradient-to-b from-[rgba(40,48,52,.7)] to-transparent"
       }`}
     >
       <div className="gutter flex h-[72px] items-center gap-6">
-        <Logo tagline={t("tagline")} />
+        <Logo />
         <nav className="hidden flex-1 justify-center gap-1 lg:flex">
           {NAV.map(([href, key]) => (
             <Link
               key={href}
               href={href}
-              className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors hover:bg-[var(--gold-soft)] hover:text-ink ${
-                (href === "/" ? pathname === "/" : pathname.startsWith(href)) ? "text-ink" : "text-ink-2"
+              className={`border-b-[1.5px] px-3.5 py-1 text-[12px] font-semibold tracking-[.16em] uppercase transition-colors hover:text-ink ${
+                (href === "/" ? pathname === "/" : pathname.startsWith(href)) ? "border-ink text-ink" : "border-transparent text-ink-2"
               }`}
             >
               {t(key)}
@@ -165,21 +165,21 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
           </div>
           {me ? (
             <>
-              <Link href="/account" className="relative hidden h-10 items-center gap-2 rounded-full px-3.5 text-sm font-medium shadow-[inset_0_0_0_1px_var(--line-2)] sm:inline-flex">
+              <Link href="/account" className="relative hidden h-10 items-center gap-2 rounded-full px-4 text-[11.5px] font-semibold tracking-[.16em] uppercase shadow-[inset_0_0_0_1.5px_var(--line-2)] sm:inline-flex">
                 {t("myTickets")}
-                {ticketCount > 0 && <b className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-ox px-1 text-[11px]">{ticketCount}</b>}
+                {ticketCount > 0 && <b className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-ink px-1 text-[11px] text-[#20272a]">{ticketCount}</b>}
               </Link>
               <div className="relative" ref={menuRef}>
                 <button onClick={() => setMenu((m) => !m)} aria-label="Profiles" aria-expanded={menu}>
-                  <Avatar profile={me.profile} size={38} />
+                  <Avatar profile={me.profile} size={34} />
                 </button>
                 {menu && (
-                  <div className="panel absolute top-12 right-0 z-50 w-60 p-2 shadow-2xl">
+                  <div className="panel absolute top-12 right-0 z-50 w-60 bg-[rgba(31,38,41,.92)] p-2 shadow-2xl">
                     {me.profiles.map((p) => (
                       <button
                         key={p.id}
                         onClick={() => switchProfile(p.id)}
-                        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-[var(--gold-soft)]"
+                        className="flex w-full items-center gap-3 px-2 py-2 text-left hover:bg-[var(--gold-soft)]"
                       >
                         <Avatar profile={p} size={30} />
                         <span className="flex-1 truncate">{p.name}</span>
@@ -187,16 +187,16 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
                       </button>
                     ))}
                     <div className="my-1 h-px bg-[var(--line)]" />
-                    <Link href="/profiles" onClick={() => setMenu(false)} className="block rounded-lg px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">{t("manageProfiles")}</Link>
-                    <Link href="/account" onClick={() => setMenu(false)} className="block rounded-lg px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">{t("myTickets")}</Link>
-                    <Link href="/my-list" onClick={() => setMenu(false)} className="block rounded-lg px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">{t("myList")}</Link>
-                    {me.role === "ADMIN" && <Link href="/admin" onClick={() => setMenu(false)} className="block rounded-lg px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">Staff</Link>}
+                    <Link href="/profiles" onClick={() => setMenu(false)} className="block px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">{t("manageProfiles")}</Link>
+                    <Link href="/account" onClick={() => setMenu(false)} className="block px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">{t("myTickets")}</Link>
+                    <Link href="/my-list" onClick={() => setMenu(false)} className="block px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">{t("myList")}</Link>
+                    {me.role === "ADMIN" && <Link href="/admin" onClick={() => setMenu(false)} className="block px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">Staff</Link>}
                     <div className="my-1 h-px bg-[var(--line)]" />
                     <div className="seg mx-2 my-2 sm:hidden" role="group" aria-label="Language">
                       <button aria-pressed={lang === "en"} onClick={() => setLang("en")}>EN</button>
                       <button aria-pressed={lang === "lus"} onClick={() => setLang("lus")}>MIZO</button>
                     </div>
-                    <button onClick={signOut} className="block w-full rounded-lg px-2 py-2 text-left text-sm text-ink-2 hover:bg-[var(--gold-soft)]">{t("signOut")}</button>
+                    <button onClick={signOut} className="block w-full px-2 py-2 text-left text-sm text-ink-2 hover:bg-[var(--gold-soft)]">{t("signOut")}</button>
                   </div>
                 )}
               </div>
@@ -213,7 +213,7 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
       )}
       <nav className="gutter no-scrollbar flex gap-1 overflow-x-auto pb-2 lg:hidden">
         {NAV.map(([href, key]) => (
-          <Link key={href} href={href} className={`shrink-0 rounded-full px-3 py-1.5 text-[13px] ${(href === "/" ? pathname === "/" : pathname.startsWith(href)) ? "bg-[var(--gold-soft)] text-ink" : "text-ink-2"}`}>
+          <Link key={href} href={href} className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold tracking-[.14em] uppercase ${(href === "/" ? pathname === "/" : pathname.startsWith(href)) ? "bg-[rgba(243,244,242,.18)] text-ink" : "text-ink-2"}`}>
             {t(key)}
           </Link>
         ))}

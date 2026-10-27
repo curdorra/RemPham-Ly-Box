@@ -13,10 +13,10 @@ function QrMark({ seed }: { seed: string }) {
       if (s / 233280 > 0.52) cells.push([x, y]);
     }
   return (
-    <svg viewBox="0 0 21 21" className="h-[78px] w-[78px] shrink-0" fill="#3a0a10" shapeRendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 21 21" className="h-[78px] w-[78px] shrink-0" fill="#1f2629" shapeRendering="crispEdges" aria-hidden="true">
       {[[0, 0], [14, 0], [0, 14]].map(([x, y]) => (
         <g key={`${x}${y}`}>
-          <rect x={x! + 0.5} y={y! + 0.5} width="6" height="6" fill="none" stroke="#3a0a10" />
+          <rect x={x! + 0.5} y={y! + 0.5} width="6" height="6" fill="none" stroke="#1f2629" />
           <rect x={x! + 2} y={y! + 2} width="3" height="3" />
         </g>
       ))}
@@ -71,9 +71,9 @@ export function ETicket({ ticket, labels, paidPaise, perfBg }: { ticket: Ticket;
       <div className="flex items-center gap-4 px-[18px] py-4">
         <QrMark seed={ticket.id} />
         <div>
-          <small className="block text-xs text-[rgba(58,10,16,.55)]">{labels.booking}</small>
-          <b className="text-sm tracking-[.08em] text-[#3a0a10]">RLB-{ticket.id.slice(-8).toUpperCase()}</b>
-          <small className="mt-1 block text-xs text-[rgba(58,10,16,.55)]">{labels.showAtCinema}</small>
+          <small className="block text-xs text-[rgba(31,38,41,.6)]">{labels.booking}</small>
+          <b className="text-sm tracking-[.08em] text-[#1f2629]">RLB-{ticket.id.slice(-8).toUpperCase()}</b>
+          <small className="mt-1 block text-xs text-[rgba(31,38,41,.6)]">{labels.showAtCinema}</small>
         </div>
       </div>
     </div>
