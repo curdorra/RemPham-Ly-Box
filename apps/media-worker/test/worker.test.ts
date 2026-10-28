@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import worker, { rewritePlaylist, type Env, type R2Bucket, type R2Object, type R2ObjectBody } from "../src/index";
+import worker, { rewritePlaylist, withKeyUrl, type Env, type R2Bucket, type R2Object, type R2ObjectBody } from "../src/index";
 
 const KEY = "k3y";
 const ORIGIN = "https://remphamly.com";
@@ -12,6 +12,7 @@ function token(dir: string, exp = Math.floor(Date.now() / 1000) + 3600, key = KE
 }
 
 const MASTER = "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-STREAM-INF:BANDWIDTH=800000\nv0.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=2800000\nv2.m3u8\n";
+const VARIANT = '#EXTM3U\n#EXT-X-KEY:METHOD=AES-128,URI="rpl-key:film",IV=0x0123\n#EXTINF:4.0,\nv0_0000.ts\n';
 const SEGMENT = new TextEncoder().encode("0123456789");
 
 /** In-memory stand-in for the R2 binding, with simple "bytes=a-b" ranges. */
@@ -43,6 +44,7 @@ const env: Env = {
   ALLOWED_ORIGINS: `${ORIGIN}, http://localhost:3000`,
   MEDIA: bucket({
     "films/dune/master.m3u8": { body: MASTER, type: "application/vnd.apple.mpegurl" },
+    "films/dune/v0.m3u8": { body: VARIANT, type: "application/vnd.apple.mpegurl" },
     "films/dune/v0_0000.ts": { body: SEGMENT, type: "video/mp2t" },
     "artwork/poster/a.jpg": { body: "jpg", type: "image/jpeg" },
   }),
@@ -92,6 +94,25 @@ describe("media worker", () => {
   it("rejects writes and answers 404 for missing files", async () => {
     expect((await get("/films/dune/master.m3u8", { method: "PUT", body: "x" })).status).toBe(405);
     expect((await get(`/films/dune/nope.ts?${token("/films/dune/")}`)).status).toBe(404);
+  });
+});
+
+describe("film keys", () => {
+  it("points an encrypted playlist's key at the playing site's /api", async () => {
+    const t = token("/films/dune/");
+    const res = await get(`/films/dune/v0.m3u8?${t}`, { headers: { origin: "http://localhost:3000" } });
+    const body = await res.text();
+    expect(body).toContain('URI="http://localhost:3000/api/playback/key?dir=%2Ffilms%2Fdune%2F",IV=0x0123');
+    expect(body).toContain(`\nv0_0000.ts?${t}\n`);
+  });
+
+  it("falls back to the first allowed origin when the player sends none (Safari's native HLS)", async () => {
+    const res = await get(`/films/dune/v0.m3u8?${token("/films/dune/")}`);
+    expect(await res.text()).toContain(`URI="${ORIGIN}/api/playback/key?dir=`);
+  });
+
+  it("leaves clear playlists alone", () => {
+    expect(withKeyUrl(MASTER, ORIGIN, "/films/dune/")).toBe(MASTER);
   });
 });
 

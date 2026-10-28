@@ -67,7 +67,8 @@ export default {
     if (!("body" in obj)) return new Response(null, { status: 304, headers });
 
     if (isPlaylist && gated) {
-      const body = rewritePlaylist(await obj.text(), url.searchParams.get("exp")!, url.searchParams.get("sig")!);
+      const signed = rewritePlaylist(await obj.text(), url.searchParams.get("exp")!, url.searchParams.get("sig")!);
+      const body = withKeyUrl(signed, keyOrigin(req, env), url.pathname.slice(0, url.pathname.lastIndexOf("/") + 1));
       headers.set("content-type", PLAYLIST);
       // Carries the viewer's token, so it must never be shared from a cache.
       headers.set("cache-control", "private, no-store");
@@ -137,6 +138,25 @@ export function rewritePlaylist(body: string, exp: string, sig: string): string 
       return line.replace(t, sign(t));
     })
     .join("\n");
+}
+
+/** Must match KEY_URI_PLACEHOLDER in apps/api/src/lib/film-keys.ts. */
+const KEY_PLACEHOLDER = 'URI="rpl-key:film"';
+
+/**
+ * Points an encrypted playlist's EXT-X-KEY at the web origin's /api/playback/key,
+ * which only answers a signed-in viewer who is watching. Same-origin for the
+ * player, so the login cookie goes with it.
+ */
+export function withKeyUrl(body: string, origin: string, dir: string): string {
+  return body.replaceAll(KEY_PLACEHOLDER, `URI="${origin}/api/playback/key?dir=${encodeURIComponent(dir)}"`);
+}
+
+/** The site that's playing (hls.js sends Origin), else the first allowed one (Safari's native player doesn't). */
+function keyOrigin(req: Request, env: Env): string {
+  const allowed = env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
+  const origin = req.headers.get("origin");
+  return origin && allowed.includes(origin) ? origin : allowed[0]!;
 }
 
 function span(r: R2Range, size: number): [offset: number, length: number] {

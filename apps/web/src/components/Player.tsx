@@ -105,7 +105,13 @@ export function Player({ titleId, episodeId }: { titleId: string; episodeId?: st
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, start);
       hls.on(Hls.Events.ERROR, (_e, data) => {
-        if (data.fatal) setState({ kind: "error", code: "stream_error", message: "The stream could not be played." });
+        if (!data.fatal) return;
+        // The film key is only handed out while this screen is in use (see /playback/key).
+        if (data.details === Hls.ErrorDetails.KEY_LOAD_ERROR) {
+          setState({ kind: "error", code: "stream_error", message: "Your viewing session ended. Reopen the film to keep watching." });
+        } else {
+          setState({ kind: "error", code: "stream_error", message: "The stream could not be played." });
+        }
       });
       return () => hls.destroy();
     }

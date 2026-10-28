@@ -43,3 +43,15 @@ Do these steps in order. If the Worker goes live before the API has the key, eve
 
 To change the key, repeat steps 2 and 3. Links already handed out stop working, and viewers reopen the film to get a new one.
 Add a new web origin (for example a new preview domain) to `ALLOWED_ORIGINS` in `apps/media-worker/wrangler.toml`.
+
+### Encrypting films
+Signed links stop strangers, but a paying viewer could still save the files during their 4 hours. With
+`CONTENT_KEY_SECRET` set, films are packaged as AES-128 HLS. The Worker points each playlist's key at
+`<site>/api/playback/key`, which only answers a signed-in viewer whose screen is playing, so a copied
+link alone gives encrypted segments. This is not studio DRM (Widevine/FairPlay): the key does reach
+the browser.
+1. Make a secret: `openssl rand -base64 32`. Keep it safe; losing or changing it breaks every encrypted film.
+2. Set `CONTENT_KEY_SECRET` on the Render API and in your local `apps/api/.env` if you
+   publish from your machine. Redeploy the Worker so it rewrites key URLs.
+3. Package films again (`publish-film`). Films packaged before this stay unencrypted and keep playing.
+4. Check: play a film (it plays), then open the key URL from a variant playlist in a private window (it should say 401).

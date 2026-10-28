@@ -42,3 +42,6 @@ services:
       # Signs film links. Must match the media Worker's SIGNING_KEY secret (apps/media-worker).
       - key: CDN_SIGNING_KEY
         sync: false
+      # Encrypts films; same value wherever films are packaged (lib/film-keys.ts).
+      - key: CONTENT_KEY_SECRET
+        sync: false

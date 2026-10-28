@@ -15,6 +15,8 @@ const envSchema = z.object({
   /** Minutes a pending order holds its seats before they are released. */
   ORDER_HOLD_MIN: z.coerce.number().int().min(1).max(60).default(15),
   CDN_SIGNING_KEY: z.string().optional().default(""),
+  /** Derives each film's AES-128 key (lib/film-keys.ts). publish-film needs the same value. */
+  CONTENT_KEY_SECRET: z.string().optional().default(""),
   PLAYBACK_TTL_SEC: z.coerce.number().int().min(60).default(4 * 60 * 60),
   /** Cloudflare R2 for artwork uploads (same bucket as publish-film). Without it, dev saves to ./uploads. */
   R2_ACCOUNT_ID: z.string().optional().default(""),

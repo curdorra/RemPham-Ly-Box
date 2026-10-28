@@ -14,10 +14,16 @@ export function signManifestUrl(manifestUrl: string, now = Date.now()) {
   if (!config.CDN_SIGNING_KEY) return { url: manifestUrl, expiresAt };
 
   const url = new URL(manifestUrl);
-  const dir = url.pathname.slice(0, url.pathname.lastIndexOf("/") + 1);
+  const dir = manifestDir(manifestUrl);
   const exp = Math.floor(expiresAt.getTime() / 1000).toString();
   const sig = createHmac("sha256", config.CDN_SIGNING_KEY).update(`${dir}:${exp}`).digest("base64url");
   url.searchParams.set("exp", exp);
   url.searchParams.set("sig", sig);
   return { url: url.toString(), expiresAt };
+}
+
+/** A manifest's folder, e.g. "/films/<slug>/": what tokens and film keys are scoped to. */
+export function manifestDir(manifestUrl: string) {
+  const { pathname } = new URL(manifestUrl);
+  return pathname.slice(0, pathname.lastIndexOf("/") + 1);
 }

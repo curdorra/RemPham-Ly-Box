@@ -129,6 +129,7 @@ npm test                   # resets + seeds the test DB, then runs API integrati
 - [ ] Reminder delivery (WhatsApp/SMS) and kitchen notifications for new snack orders
 - [ ] Ticket stubs loyalty (every 5th film free), filmmaker revenue dashboard, refunds
 - [ ] Ingest pipeline: upload → transcode to an HLS/CMAF ladder (e.g. AWS MediaConvert or Mux) → CDN
+- [x] Encrypted films: AES-128 HLS, key only for a signed-in viewer who is watching (`CONTENT_KEY_SECRET`)
 - [ ] DRM (Widevine / FairPlay / PlayReady) and forensic watermarking
 - [ ] Tune recommendation weights on real data; A/B test rows
 - [x] Skip-intro / next-episode buttons

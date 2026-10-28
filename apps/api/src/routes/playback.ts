@@ -2,9 +2,11 @@ import { Router } from "express";
 import { TICKET_TIERS, heartbeatSchema, playbackRequestSchema } from "@ott/shared";
 import type { PlaybackInfo } from "@ott/shared";
 import type { Prisma } from "../generated/prisma/client.js";
+import { config } from "../config.js";
 import { prisma } from "../lib/db.js";
 import { HttpError, notFound } from "../lib/errors.js";
-import { signManifestUrl } from "../lib/playback.js";
+import { filmKey } from "../lib/film-keys.js";
+import { manifestDir, signManifestUrl } from "../lib/playback.js";
 import { currentProfile, visibleTitles } from "../lib/profiles.js";
 import { titleSummaryInclude, toEpisode, toTitleSummary } from "../lib/serialize.js";
 import { SESSION_STALE_MS, pickPlayableTicket, ticketState, windowHours } from "../lib/tickets.js";
@@ -154,6 +156,49 @@ playbackRouter.post("/heartbeat", async (req, res) => {
   }
   await prisma.$transaction((tx) => claimScreen(tx, ticket.id, TICKET_TIERS[ticket.tier].screens, input.deviceId, now));
   res.json({ ok: true, expiresAt: ticket.expiresAt?.toISOString() ?? null });
+});
+
+/**
+ * The AES-128 key for an encrypted film, for a viewer who is watching it right
+ * now: a held ticket that's live or running, with a screen that sent a recent
+ * heartbeat. Players fetch it through the web's /api proxy (the Worker writes
+ * that URL into the playlist), so the login cookie comes along and a copied
+ * playlist link alone can't decrypt the segments.
+ */
+playbackRouter.get("/key", async (req, res) => {
+  if (!config.CONTENT_KEY_SECRET) throw new HttpError(503, "keys_unavailable", "Playback is not configured");
+  const dir = typeof req.query.dir === "string" ? req.query.dir : "";
+  if (!/^\/films\/(?:[\w-]+\/)+$/.test(dir)) throw notFound("Film");
+
+  const where = { manifestUrl: { contains: dir } };
+  const [titles, episodes] = await Promise.all([
+    prisma.title.findMany({ where, select: { id: true, manifestUrl: true } }),
+    prisma.episode.findMany({ where, select: { manifestUrl: true, season: { select: { titleId: true } } } }),
+  ]);
+  const titleIds = [
+    ...titles.map((t) => ({ id: t.id, url: t.manifestUrl })),
+    ...episodes.map((e) => ({ id: e.season.titleId, url: e.manifestUrl })),
+  ]
+    .filter((m) => m.url && manifestDir(m.url) === dir)
+    .map((m) => m.id);
+  if (!titleIds.length) throw notFound("Film");
+
+  const now = new Date();
+  const watching = await prisma.ticket.findMany({
+    where: {
+      holderId: req.userId!,
+      titleId: { in: titleIds },
+      order: { status: "PAID" },
+      sessions: { some: { lastSeenAt: { gt: new Date(now.getTime() - SESSION_STALE_MS) } } },
+    },
+    include: heldTicketsInclude,
+  });
+  if (!watching.some((t) => ["LIVE", "ACTIVE"].includes(ticketState(t, now)))) {
+    throw new HttpError(403, "not_watching", "Reopen the film to keep watching");
+  }
+
+  res.set("cache-control", "private, no-store");
+  res.type("application/octet-stream").send(filmKey(config.CONTENT_KEY_SECRET, dir));
 });
 
 /** Frees the screen straight away when a player closes. */
