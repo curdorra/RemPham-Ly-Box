@@ -143,27 +143,34 @@ export function BookingSheet({ title, screening, open, onClose }: BookingProps) 
                 <button onClick={close} className="text-[13.5px] font-semibold text-gold">Change</button>
               </div>
             )}
-            {(Object.keys(TICKET_TIERS) as TicketTier[]).map((id) => (
+            {(Object.keys(TICKET_TIERS) as TicketTier[]).map((id) => {
+              // Watch together isn't sold yet: shown so people know it's coming.
+              const soon = id === "TOGETHER";
+              return (
               <button
                 key={id}
                 role="radio"
                 aria-checked={tier === id}
+                aria-disabled={soon}
+                disabled={soon}
                 onClick={() => setTier(id)}
-                className={`grid w-full grid-cols-[1fr_auto] gap-3 rounded-[10px] p-4 text-left transition ${
+                className={`grid w-full grid-cols-[1fr_auto] gap-3 rounded-[10px] p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${
                   tier === id ? "bg-[rgba(243,244,242,.12)] shadow-[inset_0_0_0_1px_var(--color-gold)]" : "bg-[rgba(243,244,242,.04)] shadow-[inset_0_0_0_1px_var(--line)]"
                 }`}
               >
                 <span>
                   <b className="text-lg font-semibold">{id === "STANDARD" ? t("standard") : t("together")}</b>
+                  {soon && <span className="chip ml-2 align-middle bg-[var(--gold-soft)] text-gold">{t("comingSoon")}</span>}
                   <span className="mt-1 block text-[13.5px] leading-relaxed text-ink-3">
                     {id === "STANDARD" ? t("standardPerks") : `${TICKET_TIERS.TOGETHER.screens} ${t("togetherPerks")}`}
                     <br />
                     {title.rentalHours + TICKET_TIERS[id].extraHours} {t("hoursToFinish")}
                   </span>
                 </span>
-                <span className="display text-[26px] tabular-nums">{formatInr(base + TICKET_TIERS[id].addPaise)}</span>
+                <span className="display text-[26px] tabular-nums">{soon ? "" : formatInr(base + TICKET_TIERS[id].addPaise)}</span>
               </button>
-            ))}
+              );
+            })}
 
             {comboItems.length > 0 && (
               <div className="rounded-[10px] bg-[rgba(243,244,242,.04)] px-4 py-3 shadow-[inset_0_0_0_1px_var(--line)]">

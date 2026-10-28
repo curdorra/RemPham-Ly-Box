@@ -13,7 +13,7 @@ const en = {
   moreLikeThis: "More like this", episodes: "Episodes", cast: "Cast", directors: "Directed by",
   rateNo: "Not for me", rateYes: "I like this", rateLove: "Love this!",
   standard: "Standard", together: "Watch together", togetherPerks: "screens at once, in sync — invite family anywhere",
-  standardPerks: "1 screen", hoursToFinish: "hours to finish", tickets: "Tickets", extrasGift: "Extras become gift codes",
+  standardPerks: "1 screen", comingSoon: "Coming soon", hoursToFinish: "hours to finish", tickets: "Tickets", extrasGift: "Extras become gift codes",
   combo: "Add a snack combo", comboSub: "Butter popcorn + 2 cold drinks, delivered", total: "Total", pay: "Pay",
   withUpi: "with UPI", devPay: "Dev payments: no money is taken.", processing: "Processing…",
   paid: "You're in.", paidSub: "Your ticket is ready. The clock starts when you press play.", close: "Close",
