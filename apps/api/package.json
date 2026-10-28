@@ -15,6 +15,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
     "make-admin": "tsx scripts/make-admin.ts",
+    "reset-password": "tsx scripts/reset-password.ts",
     "publish-film": "tsx scripts/publish-film.ts"
   },
   "dependencies": {
