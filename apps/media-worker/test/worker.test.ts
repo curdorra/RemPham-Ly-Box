@@ -91,6 +91,10 @@ describe("media worker", () => {
     expect(res.headers.get("access-control-allow-origin")).toBeNull();
   });
 
+  it("never serves uploaded originals waiting to be converted", async () => {
+    expect((await get("/incoming/title1/abc.mp4")).status).toBe(404);
+  });
+
   it("rejects writes and answers 404 for missing files", async () => {
     expect((await get("/films/dune/master.m3u8", { method: "PUT", body: "x" })).status).toBe(405);
     expect((await get(`/films/dune/nope.ts?${token("/films/dune/")}`)).status).toBe(404);

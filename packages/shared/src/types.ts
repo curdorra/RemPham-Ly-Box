@@ -356,6 +356,8 @@ export interface AdminTitle {
   creditsStartSec: number | null;
   seasons: { id: string; number: number; name: string; episodes: AdminEpisode[] }[];
   ticketsSold: number;
+  /** Films only: the latest upload from the staff screens, if any. */
+  video: AdminVideo | null;
 }
 
 export interface AdminScreening {
@@ -455,4 +457,23 @@ export interface AdminStats {
   }[];
   /** Thumbs: -1 dislike, 1 like, 2 love. `approval` = (liked + loved) / count. */
   ratings: { titleId: string; name: string; disliked: number; liked: number; loved: number; count: number; approval: number }[];
+}
+
+export type VideoStatus = "UPLOADING" | "QUEUED" | "CONVERTING" | "READY" | "FAILED";
+
+/** A film's video upload and its conversion to HLS. */
+export interface AdminVideo {
+  status: VideoStatus;
+  fileName: string;
+  sizeBytes: number;
+  /** Conversion progress, 0–100. */
+  progress: number;
+  error: string | null;
+  updatedAt: string;
+}
+
+/** Where the browser sends each part of a video upload (straight to storage). */
+export interface VideoUploadTarget {
+  partSize: number;
+  parts: { partNumber: number; url: string }[];
 }

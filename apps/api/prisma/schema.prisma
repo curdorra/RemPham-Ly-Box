@@ -49,6 +49,15 @@ enum DeliveryWhen {
   SCHEDULED
 }
 
+/// A film video uploaded from the staff screens, on its way to being playable.
+enum VideoStatus {
+  UPLOADING
+  QUEUED
+  CONVERTING
+  READY
+  FAILED
+}
+
 enum SnackOrderStatus {
   AWAITING_PAYMENT
   PLACED
@@ -157,6 +166,7 @@ model Title {
   screenings      Screening[]
   ratings         Rating[]
   showtimes       Showtime[]
+  videoJob        VideoJob?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -301,6 +311,30 @@ model Reminder {
   createdAt   DateTime  @default(now())
 
   @@id([userId, screeningId])
+}
+
+/// The latest video upload for a film (one per title). The API takes the
+/// upload; the film worker (src/film-worker.ts) converts it to HLS under
+/// films/<slug>/ and sets the title's manifestUrl.
+model VideoJob {
+  titleId   String      @id
+  title     Title       @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  status    VideoStatus
+  fileName  String
+  sizeBytes BigInt
+  /// Storage key of the uploaded original; removed once it is converted.
+  sourceKey String?
+  /// R2 multipart upload id while UPLOADING.
+  uploadId  String?
+  /// Conversion progress, 0–100.
+  progress  Int         @default(0)
+  error     String?
+  /// Conversions started for this upload; the worker gives up after a few.
+  attempts  Int         @default(0)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([status])
 }
 
 /// One row per (ticket, device) that is currently playing; enforces the

@@ -12,12 +12,13 @@ import {
   uploadKindSchema,
 } from "@ott/shared";
 import { Prisma } from "../generated/prisma/client.js";
-import type { Episode, Genre, Season, Title } from "../generated/prisma/client.js";
+import type { Episode, Genre, Season, Title, VideoJob } from "../generated/prisma/client.js";
 import { prisma } from "../lib/db.js";
 import { HttpError, notFound } from "../lib/errors.js";
 import { listSubtitles, putSubtitle, removeSubtitle } from "../lib/film-subtitles.js";
 import { IMAGE_TYPES, saveImage } from "../lib/media.js";
 import { catalogChanged } from "../lib/publishing.js";
+import { toAdminVideo } from "../lib/video-jobs.js";
 
 /** Films and series, their episodes, and artwork uploads. Mounted under /admin. */
 export const adminCatalogRouter = Router();
@@ -65,10 +66,11 @@ function toAdminEpisode(e: Episode): AdminEpisode {
   };
 }
 
-type FullTitle = Title & { genres: Genre[]; seasons: (Season & { episodes: Episode[] })[] };
+type FullTitle = Title & { genres: Genre[]; seasons: (Season & { episodes: Episode[] })[]; videoJob: VideoJob | null };
 const fullInclude = {
   genres: { orderBy: { name: "asc" } },
   seasons: { orderBy: { number: "asc" }, include: { episodes: { orderBy: { number: "asc" } } } },
+  videoJob: true,
 } as const;
 
 async function toAdminTitle(t: FullTitle): Promise<AdminTitle> {
@@ -101,6 +103,7 @@ async function toAdminTitle(t: FullTitle): Promise<AdminTitle> {
     creditsStartSec: t.creditsStartSec,
     seasons: t.seasons.map((s) => ({ id: s.id, number: s.number, name: s.name, episodes: s.episodes.map(toAdminEpisode) })),
     ticketsSold: await paidTickets(t.id),
+    video: t.videoJob && toAdminVideo(t.videoJob),
   };
 }
 

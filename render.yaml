@@ -1,4 +1,4 @@
-# Render Blueprint: the API. (The website goes on Vercel; the database on Supabase.)
+# Render Blueprint: the API and the film worker. (The website goes on Vercel; the database on Supabase.)
 services:
   - type: web
     name: rempham-api
@@ -42,6 +42,79 @@ services:
       # Signs film links. Must match the media Worker's SIGNING_KEY secret (apps/media-worker).
       - key: CDN_SIGNING_KEY
         sync: false
-      # Encrypts films; same value wherever films are packaged (lib/film-keys.ts).
+      # Encrypts films; same value on API and worker (lib/film-keys.ts).
       - key: CONTENT_KEY_SECRET
         sync: false
+
+  # Converts films uploaded from the staff screens into HLS on R2. Needs the API's database and
+  # R2 settings (copied from it below). The config check also wants JWT_SECRET and the Razorpay
+  # vars, which the worker never uses. Starter (512 MB) converts a feature film in roughly
+  # 1–3 hours; if conversions fail with "ran out of memory", move it to Standard.
+  - type: worker
+    name: rempham-film-worker
+    runtime: docker
+    plan: starter
+    region: singapore
+    dockerfilePath: ./apps/api/worker.Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_POOL_MAX
+        value: "2"
+      - key: DATABASE_URL
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: DATABASE_URL
+      - key: JWT_SECRET
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: JWT_SECRET
+      - key: RAZORPAY_KEY_ID
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: RAZORPAY_KEY_ID
+      - key: RAZORPAY_KEY_SECRET
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: RAZORPAY_KEY_SECRET
+      - key: RAZORPAY_WEBHOOK_SECRET
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: RAZORPAY_WEBHOOK_SECRET
+      - key: R2_ACCOUNT_ID
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: R2_ACCOUNT_ID
+      - key: R2_ACCESS_KEY_ID
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: R2_ACCESS_KEY_ID
+      - key: R2_SECRET_ACCESS_KEY
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: R2_SECRET_ACCESS_KEY
+      - key: R2_BUCKET
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: R2_BUCKET
+      - key: MEDIA_BASE_URL
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: MEDIA_BASE_URL
+      # Encrypts films; same value on API and worker (lib/film-keys.ts).
+      - key: CONTENT_KEY_SECRET
+        fromService:
+          type: web
+          name: rempham-api
+          envVarKey: CONTENT_KEY_SECRET

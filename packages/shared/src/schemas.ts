@@ -276,6 +276,16 @@ export const snackItemUpdateSchema = z.object(snackItemFields).partial();
 
 export const uploadKindSchema = z.object({ kind: z.enum(["poster", "backdrop", "still"]) });
 
+/** Film uploads from the staff screens. */
+export const MAX_VIDEO_BYTES = 50 * 1024 ** 3;
+export const videoUploadSchema = z.object({
+  fileName: z.string().trim().min(1).max(200),
+  sizeBytes: z.number().int().min(1).max(MAX_VIDEO_BYTES, "Films up to 50 GB"),
+});
+export const videoCompleteSchema = z.object({
+  parts: z.array(z.object({ partNumber: z.number().int().min(1).max(10_000), etag: z.string().min(1).max(200) })).min(1).max(10_000),
+});
+
 /** Subtitle languages staff can add to a film. */
 export const SUBTITLE_LANGS = ["en", "lus"] as const;
 export const subtitleLangSchema = z.enum(SUBTITLE_LANGS);

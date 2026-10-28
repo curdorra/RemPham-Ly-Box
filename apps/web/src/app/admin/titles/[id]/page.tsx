@@ -6,6 +6,7 @@ import { DeleteTitle } from "@/components/admin/DeleteTitle";
 import { EpisodeManager } from "@/components/admin/EpisodeManager";
 import { SubtitleManager } from "@/components/admin/SubtitleManager";
 import { TitleForm } from "@/components/admin/TitleForm";
+import { VideoUpload } from "@/components/admin/VideoUpload";
 import { ApiError, apiGet } from "@/lib/api-server";
 
 export const metadata: Metadata = { title: "Edit title · Staff" };
@@ -34,6 +35,7 @@ export default async function EditTitlePage({ params }: { params: Promise<{ id: 
       {/* Keyed so a save that changes the record (e.g. scheduled → published) re-seeds the form. */}
       <TitleForm key={title.id} title={title} genres={genres} />
       {title.type === "SERIES" && <EpisodeManager title={title} />}
+      {title.type === "MOVIE" && <VideoUpload titleId={title.id} initial={title.video} hasStream={!!title.manifestUrl} />}
       {title.type === "MOVIE" && <SubtitleManager titleId={title.id} initial={subtitles} />}
       <DeleteTitle id={title.id} name={title.name} canDelete={title.ticketsSold === 0} />
     </div>

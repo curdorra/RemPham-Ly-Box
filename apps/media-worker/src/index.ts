@@ -43,6 +43,8 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (req.method !== "GET" && req.method !== "HEAD") return text(405, "Method not allowed", cors);
 
+    // Originals uploaded from the staff screens wait here, unencrypted, for the film worker. Never served.
+    if (url.pathname.startsWith("/incoming/")) return text(404, "Not found", cors);
     const gated = url.pathname.startsWith(GATED);
     if (gated) {
       // Fail closed: without a key nothing under /films/ is served.

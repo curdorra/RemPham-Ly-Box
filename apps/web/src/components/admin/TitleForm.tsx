@@ -83,6 +83,9 @@ function toPayload(f: Form): TitleInput | string {
 export function TitleForm({ title, genres }: { title: AdminTitle | null; genres: string[] }) {
   const router = useRouter();
   const [f, setF] = useState(() => initialForm(title));
+  // As last loaded or saved: the video fields go out only when edited, so a film
+  // conversion finishing while this form is open isn't undone by a save.
+  const [base, setBase] = useState(() => initialForm(title));
   const [slugEdited, setSlugEdited] = useState(!!title);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -100,8 +103,15 @@ export function TitleForm({ title, genres }: { title: AdminTitle | null; genres:
     setSaving(true);
     try {
       if (title) {
-        const updated = await api<AdminTitle>(`/admin/titles/${title.id}`, { method: "PATCH", body: payload });
+        const { manifestUrl, durationSec, ...rest } = payload;
+        const body = {
+          ...rest,
+          ...(f.manifestUrl !== base.manifestUrl && { manifestUrl }),
+          ...(f.duration !== base.duration && { durationSec }),
+        };
+        const updated = await api<AdminTitle>(`/admin/titles/${title.id}`, { method: "PATCH", body });
         setF(initialForm(updated));
+        setBase(initialForm(updated));
         setSavedAt(new Date());
         router.refresh();
       } else {
@@ -218,7 +228,7 @@ export function TitleForm({ title, genres }: { title: AdminTitle | null; genres:
         <h2 className="headline text-[22px]">Video</h2>
         {movie ? (
           <>
-            <Field label="Film stream (HLS master.m3u8)" hint="Filled in for you by publish-film; paste one here to use another host">
+            <Field label="Film stream (HLS master.m3u8)" hint="Filled in when a “Film video” upload (below) finishes converting; or paste a link to use another host">
               <input className="field" type="url" value={f.manifestUrl} onChange={(e) => set("manifestUrl", e.target.value)} />
             </Field>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

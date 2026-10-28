@@ -25,6 +25,21 @@
    Without them, uploading in production says so and staff can paste image URLs instead.
 6. Make yourself staff: `DATABASE_URL=<supabase url> npm run make-admin -w @ott/api -- you@email.com`.
 
+## Uploading films from the admin page
+Staff can upload a film on its admin page ("Film video"). The browser sends the file in parts straight
+to R2 (under `incoming/`); the **film worker** (`rempham-film-worker` in `render.yaml`, a paid Render
+background worker) converts it into the same HLS package `publish-film` makes and attaches it to the title.
+1. **Render**: sync the Blueprint so it creates `rempham-film-worker`. It copies `DATABASE_URL`, the `R2_*`
+   values, `MEDIA_BASE_URL` and `CONTENT_KEY_SECRET` from the API. Starter (512 MB) is the cheapest; if
+   conversions fail with "ran out of memory", switch it to Standard.
+2. **R2 CORS** (once), so browsers on the site may upload:
+   `npm run publish-film -w @ott/api -- --setup-cors https://remphamly.com https://www.remphamly.com`
+   (needs an R2 token allowed to edit bucket settings).
+3. **Worker**: redeploy it (`npm run deploy -w @ott/media-worker`) so `media.remphamly.com/incoming/*` answers
+   404 instead of serving uploaded originals.
+4. Check: upload a short clip on a film's admin page. It goes Uploading → Waiting → Converting → Streaming.
+The original is deleted after a successful conversion and kept after a failure ("Try converting again").
+
 ## Locking films (before paid releases)
 Until this is done, anyone with a film's R2 link can watch it. `apps/media-worker` is a Cloudflare Worker on
 `media.remphamly.com/films/*` that only serves a film with the expiring link from `POST /playback`. Artwork stays public.
@@ -51,7 +66,7 @@ Signed links stop strangers, but a paying viewer could still save the files duri
 link alone gives encrypted segments. This is not studio DRM (Widevine/FairPlay): the key does reach
 the browser.
 1. Make a secret: `openssl rand -base64 32`. Keep it safe; losing or changing it breaks every encrypted film.
-2. Set `CONTENT_KEY_SECRET` on the Render API and in your local `apps/api/.env` if you
+2. Set `CONTENT_KEY_SECRET` on the Render API, on the film worker, and in your local `apps/api/.env` if you
    publish from your machine. Redeploy the Worker so it rewrites key URLs.
-3. Package films again (`publish-film`). Films packaged before this stay unencrypted and keep playing.
+3. Package films again (upload or `publish-film`). Films packaged before this stay unencrypted and keep playing.
 4. Check: play a film (it plays), then open the key URL from a variant playlist in a private window (it should say 401).

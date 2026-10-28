@@ -9,10 +9,11 @@ import { requireAdmin } from "../middleware/auth.js";
 import { adminCatalogRouter } from "./admin-catalog.js";
 import { adminEventsRouter } from "./admin-events.js";
 import { adminStatsRouter } from "./admin-stats.js";
+import { adminVideoRouter } from "./admin-video.js";
 
 export const adminRouter = Router();
 adminRouter.use(requireAdmin);
-adminRouter.use(adminCatalogRouter, adminEventsRouter, adminStatsRouter);
+adminRouter.use(adminCatalogRouter, adminEventsRouter, adminStatsRouter, adminVideoRouter);
 
 const listSchema = z.object({
   status: z.enum(["PLACED", "ACCEPTED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELED"]).optional(),
