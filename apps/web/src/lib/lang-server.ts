@@ -1,9 +1,9 @@
 import "server-only";
-import { cookies } from "next/headers";
-import { LANG_COOKIE, parseLang, translator } from "./i18n";
+import { translator, type Lang } from "./i18n";
 
-export async function getLang() {
-  return parseLang((await cookies()).get(LANG_COOKIE)?.value);
+/** The site is English-only; the Mizo switch was removed (2026-10-28). */
+export async function getLang(): Promise<Lang> {
+  return "en";
 }
 
 export async function getT() {

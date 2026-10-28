@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Me, Suggestion } from "@ott/shared";
 import { api } from "@/lib/api-client";
-import { LANG_COOKIE, type Lang } from "@/lib/i18n";
 import { useT } from "./LangProvider";
 import { Logo } from "./Logo";
 import { Avatar } from "./Avatar";
@@ -13,10 +12,16 @@ import { Avatar } from "./Avatar";
 const NAV = [
   ["/", "navHome"],
   ["/opening", "navOpening"],
-  ["/cinema", "navCinema"],
+  ["cinema", "navCinema"],
   ["/snacks", "navSnacks"],
   ["/box-office", "navBoxOffice"],
 ] as const;
+
+/** "At the Cinema" goes straight to today's RemPhamLy Cinema page on BookMyShow. */
+function bmsUrl() {
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).replaceAll("-", "");
+  return `https://in.bookmyshow.com/cinemas/AIZW/remphamly-cinema-aizawl/buytickets/RHCA/${day}`;
+}
 
 function SearchBox({ onDone }: { onDone?: () => void }) {
   const t = useT();
@@ -89,7 +94,7 @@ function SearchBox({ onDone }: { onDone?: () => void }) {
   );
 }
 
-export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; ticketCount: number }) {
+export function Header({ me, ticketCount }: { me: Me | null; ticketCount: number }) {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
@@ -112,10 +117,6 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
     return () => document.removeEventListener("click", close);
   }, []);
 
-  const setLang = (l: Lang) => {
-    document.cookie = `${LANG_COOKIE}=${l}; path=/; max-age=31536000; samesite=lax`;
-    router.refresh();
-  };
   const switchProfile = async (profileId: string) => {
     await api("/profiles/current", { method: "PUT", body: { profileId } });
     setMenu(false);
@@ -137,17 +138,16 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
       <div className="gutter flex h-[72px] items-center gap-6">
         <Logo />
         <nav className="hidden flex-1 justify-center gap-1 lg:flex">
-          {NAV.map(([href, key]) => (
-            <Link
-              key={href}
-              href={href}
-              className={`border-b-[1.5px] px-3.5 py-1 text-[12px] font-semibold tracking-[.16em] uppercase transition-colors hover:text-ink ${
-                (href === "/" ? pathname === "/" : pathname.startsWith(href)) ? "border-ink text-ink" : "border-transparent text-ink-2"
-              }`}
-            >
-              {t(key)}
-            </Link>
-          ))}
+          {NAV.map(([href, key]) => {
+            const cls = `border-b-[1.5px] px-3.5 py-1 text-[12px] font-semibold tracking-[.16em] uppercase transition-colors hover:text-ink ${
+              (href === "/" ? pathname === "/" : pathname.startsWith(href)) ? "border-ink text-ink" : "border-transparent text-ink-2"
+            }`;
+            return href === "cinema" ? (
+              <a key={href} href={bmsUrl()} target="_blank" rel="noopener" className={cls}>{t(key)}</a>
+            ) : (
+              <Link key={href} href={href} className={cls}>{t(key)}</Link>
+            );
+          })}
         </nav>
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <div className="hidden lg:block">
@@ -159,10 +159,6 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
               <path d="M20 20l-4-4" />
             </svg>
           </button>
-          <div className="seg hidden sm:flex" role="group" aria-label="Language">
-            <button aria-pressed={lang === "en"} onClick={() => setLang("en")}>EN</button>
-            <button aria-pressed={lang === "lus"} onClick={() => setLang("lus")}>MIZO</button>
-          </div>
           {me ? (
             <>
               <Link href="/account" className="relative hidden h-10 items-center gap-2 rounded-full px-4 text-[11.5px] font-semibold tracking-[.16em] uppercase shadow-[inset_0_0_0_1.5px_var(--line-2)] sm:inline-flex">
@@ -192,10 +188,6 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
                     <Link href="/my-list" onClick={() => setMenu(false)} className="block px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">{t("myList")}</Link>
                     {me.role === "ADMIN" && <Link href="/admin" onClick={() => setMenu(false)} className="block px-2 py-2 text-sm hover:bg-[var(--gold-soft)]">Staff</Link>}
                     <div className="my-1 h-px bg-[var(--line)]" />
-                    <div className="seg mx-2 my-2 sm:hidden" role="group" aria-label="Language">
-                      <button aria-pressed={lang === "en"} onClick={() => setLang("en")}>EN</button>
-                      <button aria-pressed={lang === "lus"} onClick={() => setLang("lus")}>MIZO</button>
-                    </div>
                     <button onClick={signOut} className="block w-full px-2 py-2 text-left text-sm text-ink-2 hover:bg-[var(--gold-soft)]">{t("signOut")}</button>
                   </div>
                 )}
@@ -212,11 +204,14 @@ export function Header({ me, lang, ticketCount }: { me: Me | null; lang: Lang; t
         </div>
       )}
       <nav className="gutter no-scrollbar flex gap-1 overflow-x-auto pb-2 lg:hidden">
-        {NAV.map(([href, key]) => (
-          <Link key={href} href={href} className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold tracking-[.14em] uppercase ${(href === "/" ? pathname === "/" : pathname.startsWith(href)) ? "bg-[rgba(243,244,242,.18)] text-ink" : "text-ink-2"}`}>
-            {t(key)}
-          </Link>
-        ))}
+        {NAV.map(([href, key]) => {
+          const cls = `shrink-0 rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold tracking-[.14em] uppercase ${(href === "/" ? pathname === "/" : pathname.startsWith(href)) ? "bg-[rgba(243,244,242,.18)] text-ink" : "text-ink-2"}`;
+          return href === "cinema" ? (
+            <a key={href} href={bmsUrl()} target="_blank" rel="noopener" className={cls}>{t(key)}</a>
+          ) : (
+            <Link key={href} href={href} className={cls}>{t(key)}</Link>
+          );
+        })}
       </nav>
     </header>
   );

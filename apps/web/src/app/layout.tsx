@@ -25,10 +25,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const usable = tickets.filter((x) => !x.isGiftForOthers && x.state !== "EXPIRED").length;
   const t = translator(lang);
   return (
-    <html lang={lang === "lus" ? "lus" : "en"} className={`${sourceSerif.variable} ${barlow.variable} ${barlowCond.variable} ${archivo.variable}`}>
+    <html lang="en" className={`${sourceSerif.variable} ${barlow.variable} ${barlowCond.variable} ${archivo.variable}`}>
       <body className="min-h-screen">
         <LangProvider lang={lang}>
-          <Header me={me} lang={lang} ticketCount={usable} />
+          <Header me={me} ticketCount={usable} />
           <main>{children}</main>
           <footer className="gutter mt-28 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--line)] py-10 text-sm text-ink-3">
             <Logo />
