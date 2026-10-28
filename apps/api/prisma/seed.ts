@@ -1,6 +1,7 @@
 /**
  * Seeds a demo catalog. Streams are public HLS test assets (Blender Foundation
- * open movies, CC-BY) and artwork comes from picsum.photos placeholders.
+ * open movies, CC-BY). The Blender films use their real posters and stills from
+ * Wikimedia Commons; everything else gets picsum.photos placeholders.
  * Safe to re-run: it upserts by slug.
  */
 import "dotenv/config";
@@ -19,11 +20,12 @@ const STREAMS = {
   tearsOfSteel: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
   appleBipBop: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
   muxTos: "https://test-streams.mux.dev/tos_ismc/main.m3u8",
-  sintel: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+  sintel: "https://storage.googleapis.com/shaka-demo-assets/sintel-fmp4-aes/master.m3u8",
 };
 const streamList = [STREAMS.bigBuckBunny, STREAMS.tearsOfSteel, STREAMS.appleBipBop, STREAMS.muxTos];
 
 const art = (seed: string, w: number, h: number) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
+const commons = (path: string) => `https://upload.wikimedia.org/wikipedia/commons/thumb/${path}`;
 
 const GENRES = [
   ["animation", "Animation"],
@@ -58,6 +60,9 @@ interface SeedTitle {
   openingNightInDays?: number;
   durationSec?: number;
   manifestUrl?: string;
+  /** Real artwork; picsum placeholders otherwise. */
+  posterUrl?: string;
+  backdropUrl?: string;
   seasons?: { name: string; episodes: string[] }[];
 }
 
@@ -80,6 +85,8 @@ const TITLES: SeedTitle[] = [
     featured: true,
     durationSec: 888,
     manifestUrl: STREAMS.sintel,
+    posterUrl: commons("8/8f/Sintel_poster.jpg/960px-Sintel_poster.jpg"),
+    backdropUrl: commons("f/f1/Sintel_movie_4K.webm/1920px--Sintel_movie_4K.webm.jpg"),
   },
   {
     slug: "big-buck-bunny",
@@ -98,6 +105,8 @@ const TITLES: SeedTitle[] = [
     featured: true,
     durationSec: 596,
     manifestUrl: STREAMS.bigBuckBunny,
+    posterUrl: commons("c/c5/Big_buck_bunny_poster_big.jpg/960px-Big_buck_bunny_poster_big.jpg"),
+    backdropUrl: commons("c/c0/Big_Buck_Bunny_4K.webm/1920px--Big_Buck_Bunny_4K.webm.jpg"),
   },
   {
     slug: "tears-of-steel",
@@ -116,6 +125,8 @@ const TITLES: SeedTitle[] = [
     featured: true,
     durationSec: 734,
     manifestUrl: STREAMS.tearsOfSteel,
+    posterUrl: commons("7/70/Tos-poster.png/960px-Tos-poster.png"),
+    backdropUrl: commons("c/cb/Tears_of_Steel_1080p.webm/1920px--Tears_of_Steel_1080p.webm.jpg"),
   },
   {
     slug: "signal-test",
@@ -216,8 +227,8 @@ async function main() {
       rentalHours: t.rentalHours ?? 48,
       durationSec: t.durationSec ?? null,
       manifestUrl: t.manifestUrl ?? null,
-      posterUrl: art(`${t.slug}-poster`, 400, 600),
-      backdropUrl: art(`${t.slug}-backdrop`, 1600, 900),
+      posterUrl: t.posterUrl ?? art(`${t.slug}-poster`, 400, 600),
+      backdropUrl: t.backdropUrl ?? art(`${t.slug}-backdrop`, 1600, 900),
       genres: { set: t.genres.map((g) => ({ id: genreIds.get(g)! })) },
     };
     const title = await prisma.title.upsert({
