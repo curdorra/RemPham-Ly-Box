@@ -3,7 +3,6 @@ export type Lang = "en" | "lus";
 export const LANG_COOKIE = "rlb_lang";
 
 const en = {
-  tagline: "Online Cinema",
   navHome: "Home", navOpening: "Opening Night", navCinema: "At the Cinema", navSnacks: "Snacks", navBoxOffice: "Box Office",
   myTickets: "My Tickets", signIn: "Sign in", signUp: "Create account", signOut: "Sign out", search: "Search",
   searchPlaceholder: "Films, series, people, genres",
@@ -42,7 +41,6 @@ export type Key = keyof typeof en;
 
 const lus: Record<Key, string> = {
   ...en,
-  tagline: "Online Cinema",
   navHome: "In", navOpening: "Chhuah Ṭanna Zan", navCinema: "Cinema-ah", navSnacks: "Snacks", navBoxOffice: "Box Office",
   myTickets: "Ka Ticket", signIn: "Lut rawh", signUp: "Account siam rawh", signOut: "Chhuak rawh", search: "Zawng rawh",
   searchPlaceholder: "Film, series, mi, chi hrang hrang",
