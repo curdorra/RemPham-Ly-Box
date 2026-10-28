@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Barlow, Barlow_Condensed, Source_Serif_4 } from "next/font/google";
+import { Archivo, Newsreader } from "next/font/google";
 import { Header } from "@/components/Header";
 import { LangProvider } from "@/components/LangProvider";
 import { Logo } from "@/components/Logo";
@@ -7,10 +7,9 @@ import { getMe, getTickets } from "@/lib/api-server";
 import { getLang } from "@/lib/lang-server";
 import "./globals.css";
 
-// Source Serif 4 carries titles, Barlow the UI, Barlow Condensed section heads, Archivo (wide) the wordmark.
-const sourceSerif = Source_Serif_4({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600"], variable: "--font-source-serif" });
-const barlow = Barlow({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600"], variable: "--font-barlow" });
-const barlowCond = Barlow_Condensed({ subsets: ["latin", "latin-ext"], weight: ["300", "400", "500", "600"], variable: "--font-barlow-cond" });
+// Two families: Newsreader (optical sizes) carries titles; Archivo carries the UI, and its width axis
+// gives the condensed section heads and the wide wordmark.
+const newsreader = Newsreader({ subsets: ["latin", "latin-ext"], axes: ["opsz"], weight: "variable", variable: "--font-newsreader" });
 const archivo = Archivo({ subsets: ["latin", "latin-ext"], axes: ["wdth"], weight: "variable", variable: "--font-archivo" });
 
 export const metadata: Metadata = {
@@ -23,7 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const tickets = me ? await getTickets().catch(() => []) : [];
   const usable = tickets.filter((x) => !x.isGiftForOthers && x.state !== "EXPIRED").length;
   return (
-    <html lang="en" className={`${sourceSerif.variable} ${barlow.variable} ${barlowCond.variable} ${archivo.variable}`}>
+    <html lang="en" className={`${newsreader.variable} ${archivo.variable}`}>
       <body className="min-h-screen">
         <LangProvider lang={lang}>
           <Header me={me} ticketCount={usable} />

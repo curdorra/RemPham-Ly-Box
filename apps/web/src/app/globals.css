@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* RemPham'Ly Box — slate + paper (design handoff, 2026-10-27). Square editorial edges, pill buttons,
-   Source Serif 4 titles, Barlow UI text, Barlow Condensed section heads, Archivo wide wordmark.
+   Newsreader titles; Archivo for everything else (condensed for section heads, wide for the wordmark).
    Token names (ox, gold, …) are kept from the old theme so every page follows; their values are now slate/paper. */
 
 @theme {
@@ -16,11 +16,11 @@
   --color-ox-deep: #1f2629;
   --color-gold: #dfe3e0;
   --color-paper: #f6f4ef;
-  --font-serif: var(--font-source-serif), Georgia, serif;
-  --font-display: var(--font-source-serif), Georgia, serif;
-  --font-cond: var(--font-barlow-cond), var(--font-barlow), system-ui, sans-serif;
-  --font-wide: var(--font-archivo), var(--font-barlow), system-ui, sans-serif;
-  --font-sans: var(--font-barlow), system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-display: var(--font-newsreader), Georgia, serif;
+  --font-cond: var(--font-archivo), system-ui, sans-serif;
+  --font-wide: var(--font-archivo), system-ui, sans-serif;
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
 }
 
 :root {
@@ -48,8 +48,9 @@ body {
   /* type */
   .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
   .serif { font-family: var(--font-serif); }
-  .display { font-family: var(--font-serif); font-weight: 500; letter-spacing: -0.01em; line-height: 1.08; }
-  .headline { font-family: var(--font-cond); font-weight: 300; text-transform: uppercase; letter-spacing: 0.14em; line-height: 1.1; }
+  .display { font-family: var(--font-serif); font-weight: 500; letter-spacing: -0.015em; line-height: 1.08; }
+  .font-cond { font-stretch: 78%; }
+  .headline { font-family: var(--font-cond); font-stretch: 78%; font-weight: 300; text-transform: uppercase; letter-spacing: 0.14em; line-height: 1.1; }
   .eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; font-size: 13px; font-weight: 500; letter-spacing: 0.04em; color: var(--color-ink-2); }
   .rule-after::after { content: ""; width: 40px; height: 1px; background: var(--line-2); }
   .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-ink); animation: pulse 1.6s ease-in-out infinite; flex: none; }
